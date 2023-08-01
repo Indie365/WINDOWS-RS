@@ -307,8 +307,8 @@ pub trait RowReader<'a> {
         self.row_list(row, 4)
     }
 
-    fn type_def_generics(&self, row: TypeDef) -> Vec<Type> {
-        self.row_equal_range(row, 2, TypeOrMethodDef::TypeDef(row).encode()).map(Type::GenericParam).collect()
+    fn type_def_generics(&self, row: TypeDef) -> RowIterator<GenericParam> {
+        self.row_equal_range(row, 2, TypeOrMethodDef::TypeDef(row).encode())
     }
 
     fn type_def_interface_impls(&self, row: TypeDef) -> RowIterator<InterfaceImpl> {

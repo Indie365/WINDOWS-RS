@@ -285,7 +285,7 @@ impl<'a> Writer<'a> {
 
     fn interface_def(&self, def: metadata::TypeDef) -> TokenStream {
         let name = to_ident(self.reader.type_def_name(def));
-        let generics = &self.reader.type_def_generics(def);
+        let generics = &metadata::type_def_generics(&self.reader, def);
 
         let methods = self.reader.type_def_methods(def).map(|method| {
             let name = to_ident(self.reader.method_def_name(method));

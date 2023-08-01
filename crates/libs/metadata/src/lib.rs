@@ -23,13 +23,13 @@ pub use row::*;
 use std::collections::*;
 pub use type_name::TypeName;
 
-#[derive(Clone, PartialEq, PartialOrd, Eq, Ord)]
+#[derive(Clone)]
 pub struct Interface {
     pub ty: Type,
     pub kind: InterfaceKind,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, PartialOrd, Eq, Ord)]
+#[derive(Copy, Clone, PartialEq, Eq)]
 pub enum InterfaceKind {
     None,
     Default,
@@ -111,7 +111,6 @@ pub enum Value {
     TypeName(String),
     TypeRef(TypeDefOrRef),
     EnumDef(TypeDef, Box<Self>),
-    EnumRef(TypeDefOrRef, Box<Self>),
 }
 
 pub struct Signature {
@@ -247,9 +246,6 @@ impl<'a> Reader<'a> {
                 Type::String => Value::String(values.read_str().to_string()),
                 Type::TypeName => Value::TypeName(values.read_str().to_string()),
                 Type::TypeDef(def, _) => Value::EnumDef(def, Box::new(values.read_integer(self.type_def_underlying_type(def)))),
-                // It's impossible to know the type of a TypeRef so we just assume 32-bit integer which covers System.* attribute args
-                // reasonably well but the solution is to follow the WinRT metadata and define replacements for those attribute types.
-                Type::TypeRef(code) => Value::EnumRef(code, Box::new(values.read_integer(Type::I32))),
                 rest => unimplemented!("{rest:?}"),
             };
 
@@ -656,9 +652,6 @@ impl<'a> Reader<'a> {
         }
         false
     }
-    // TODO: consider removing all the expects and just return Option<T> and let the caller expect it
-    // that way the metadata reader is a little more schema-agnostic...
-
     pub fn type_def_interfaces(&'a self, row: TypeDef, generics: &'a [Type]) -> impl Iterator<Item = Interface> + '_ {
         self.type_def_interface_impls(row).map(move |row| self.interface_impl_type(row, generics))
     }

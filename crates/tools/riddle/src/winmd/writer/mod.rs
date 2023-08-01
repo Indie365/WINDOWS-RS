@@ -77,83 +77,6 @@ impl Writer {
         )
     }
 
-    // fn insert_module_types(&mut self, module: &'a Module) {
-    //     for (name, def) in &module.types {
-    //         self.insert_type_def(&module.namespace, name, def);
-    //     }
-    //     module.modules.values().for_each(|module| self.insert_module_types(module));
-    // }
-
-    // fn insert_type_def(&mut self, namespace: &'a str, name: &'a str, def: &'a [TypeDef]) {
-    //     for def in def {
-    //         let extends = if let Some(extends) = &def.extends { self.insert_type_ref(&extends.namespace, &extends.name) } else { 0 };
-    //         self.tables.TypeDef.push(TypeDef {
-    //             Flags: def.flags.0,
-    //             TypeName: self.strings.insert(name),
-    //             TypeNamespace: self.strings.insert(namespace),
-    //             Extends: extends,
-    //             FieldList: self.tables.Field.len() as u32,
-    //             MethodList: self.tables.MethodDef.len() as u32,
-    //         });
-    //         for field in &def.fields {
-    //             let blob = self.insert_field_sig(&field.ty);
-    //             let parent = self.tables.Field.push2(Field { Flags: field.flags.0, Name: self.strings.insert(&field.name), Signature: blob });
-    //             if let Some(value) = &field.value {
-    //                 let blob = self.insert_value_blob(value);
-    //                 self.tables.Constant.push(Constant { Type: value.to_code(), Parent: HasConstant::Field(parent).encode(), Value: blob });
-    //             }
-    //         }
-    //         for method in &def.methods {
-    //             let blob = self.insert_method_sig(method);
-    //             self.tables.MethodDef.push(MethodDef { RVA: 0, ImplFlags: 0, Flags: method.flags.0, Name: self.strings.insert(&method.name), Signature: blob, ParamList: self.tables.Param.len() as u32 });
-    //             for (sequence, param) in method.params.iter().enumerate() {
-    //                 self.tables.Param.push(Param { Flags: param.flags.0, Sequence: (sequence + 1) as u32, Name: self.strings.insert(&param.name) });
-    //             }
-    //         }
-    //     }
-    // }
-
-    // fn insert_value_blob(&mut self, value: &Value) -> u32 {
-    //     // TODO: can either cache in Writer, like we do for scopes and references, or regenerate each time.
-    //     // Profile once we can stress test this with field/method signatures.
-
-    //     let blob = match value {
-    //         Value::I8(value) => value.to_le_bytes().to_vec(),
-    //         Value::U8(value) => value.to_le_bytes().to_vec(),
-    //         Value::I16(value) => value.to_le_bytes().to_vec(),
-    //         Value::U16(value) => value.to_le_bytes().to_vec(),
-    //         Value::I32(value) => value.to_le_bytes().to_vec(),
-    //         Value::U32(value) => value.to_le_bytes().to_vec(),
-    //         Value::I64(value) => value.to_le_bytes().to_vec(),
-    //         Value::U64(value) => value.to_le_bytes().to_vec(),
-    //         Value::F32(value) => value.to_le_bytes().to_vec(),
-    //         Value::F64(value) => value.to_le_bytes().to_vec(),
-    //         Value::String(value) => {
-    //             let mut blob = vec![];
-    //             usize_blob(value.len(), &mut blob);
-    //             blob.extend_from_slice(value.as_bytes());
-    //             blob
-    //         }
-    //         rest => unimplemented!("{rest:?}"),
-    //     };
-
-    //     self.blobs.insert(&blob)
-    // }
-
-    // fn insert_method_sig(&mut self, method: &'a Method) -> u32 {
-    //     // TODO: can either cache in Writer, like we do for scopes and references, or regenerate each time.
-    //     // Profile once we can stress test this with field/method signatures.
-
-    //     let mut blob = vec![method.call_flags.0];
-    //     usize_blob(method.params.len(), &mut blob);
-    //     self.type_blob(&method.return_type.ty, &mut blob);
-    //     for param in &method.params {
-    //         self.type_blob(&param.ty, &mut blob);
-    //     }
-
-    //     self.blobs.insert(&blob)
-    // }
-
     pub fn insert_method_sig(&mut self, sig: &Signature) -> u32 {
         let mut blob = vec![sig.call_flags];
         usize_blob(sig.params.len(), &mut blob);
@@ -166,6 +89,7 @@ impl Writer {
         self.blobs.insert(&blob)
     }
 
+    // TODO: remove this
     pub fn insert_field_sig(&mut self, ty: &Type) -> u32 {
         // TODO: can either cache in Writer, like we do for scopes and references, or regenerate each time.
         // Profile once we can stress test this with field/method signatures.
@@ -175,6 +99,16 @@ impl Writer {
 
         self.blobs.insert(&blob)
     }
+
+    // pub fn insert_field_sig2(&mut self, ty: &metadata::Type) -> u32 {
+    //     // TODO: should we either cache in Writer, like we do for scopes and references, or regenerate each time.
+    //     // Profile once we can stress test this with field/method signatures.
+
+    //     let mut blob = vec![0x6]; // FIELD
+    //     self.type_blob2(ty, &mut blob);
+
+    //     self.blobs.insert(&blob)
+    // }
 
     fn insert_scope(&mut self, namespace: &str) -> u32 {
         if let Some(scope) = self.scopes.get(namespace) {
@@ -186,7 +120,7 @@ impl Writer {
                     MajorVersion: 4,
                     PublicKeyOrToken: self
                         .blobs
-                        .insert(&[0xB7, 0x7A, 0x5C, 0x56, 0x19, 0x34, 0xE0, 0x89]),
+                        .insert(&[0xB7, 0x7A, 0x5C, 0x56, 0x19, 0x34, 0xE0, 0x89]), // TODO: comment on this
                     ..Default::default()
                 }),
             )
@@ -232,6 +166,31 @@ impl Writer {
         reference
     }
 
+    // fn type_blob2(&mut self, ty: &metadata::Type, blob: &mut Vec<u8>) {
+    //     match ty {
+    //         metadata::Type::Void => blob.push(ELEMENT_TYPE_VOID),
+    //         metadata::Type::Bool => blob.push(ELEMENT_TYPE_BOOLEAN),
+    //         metadata::Type::Char => blob.push(ELEMENT_TYPE_CHAR),
+    //         metadata::Type::I8 => blob.push(ELEMENT_TYPE_I1),
+    //         metadata::Type::U8 => blob.push(ELEMENT_TYPE_U1),
+    //         metadata::Type::I16 => blob.push(ELEMENT_TYPE_I2),
+    //         metadata::Type::U16 => blob.push(ELEMENT_TYPE_U2),
+    //         metadata::Type::I32 => blob.push(ELEMENT_TYPE_I4),
+    //         metadata::Type::U32 => blob.push(ELEMENT_TYPE_U4),
+    //         metadata::Type::I64 => blob.push(ELEMENT_TYPE_I8),
+    //         metadata::Type::U64 => blob.push(ELEMENT_TYPE_U8),
+    //         metadata::Type::F32 => blob.push(ELEMENT_TYPE_R4),
+    //         metadata::Type::F64 => blob.push(ELEMENT_TYPE_R8),
+    //         metadata::Type::ISize => blob.push(ELEMENT_TYPE_I),
+    //         metadata::Type::USize => blob.push(ELEMENT_TYPE_U),
+    //         metadata::Type::String => blob.push(ELEMENT_TYPE_STRING),
+    //         metadata::Type::IInspectable => blob.push(ELEMENT_TYPE_OBJECT),
+
+    //         rest => unimplemented!("{rest:?}"),
+    //     }
+    // }
+
+    // TODO: remove this
     fn type_blob(&mut self, ty: &Type, blob: &mut Vec<u8>) {
         match ty {
             Type::Void => blob.push(ELEMENT_TYPE_VOID),

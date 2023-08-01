@@ -20,13 +20,16 @@ pub fn from_reader(
         )));
     }
 
+    // TODO: just use the reader directly since we now have everything in the reader, there's no need to abstract
+    // away the source format. Few reprs is always better. 
+
     for item in reader.items(filter) {
         // TODO: cover all variants
         let metadata::Item::Type(def) = item else {
             continue;
         };
 
-        let generics = &reader.type_def_generics(def);
+        let generics = &metadata::type_def_generics(&reader, def);
 
         let extends = if let Some(extends) = reader.type_def_extends(def) {
             writer.insert_type_ref(extends.namespace, extends.name)
@@ -87,6 +90,8 @@ pub fn from_reader(
     // like mdmerge supports for namespace-splitting.
     crate::write_to_file(output, writer.into_stream()).map_err(|err| err.with_path(output))
 }
+
+// TODO: get rid of this temporary translation
 
 fn winmd_signature(reader: &metadata::Reader, sig: &metadata::Signature) -> winmd::Signature {
     let params = sig

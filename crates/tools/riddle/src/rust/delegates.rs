@@ -55,7 +55,7 @@ fn gen_win_delegate(writer: &Writer, def: TypeDef) -> TokenStream {
     let vtbl = name.join("_Vtbl");
     let boxed = name.join("Box");
 
-    let generics = &writer.reader.type_def_generics(def);
+    let generics = &type_def_generics(&writer.reader, def);
     let phantoms = writer.generic_phantoms(generics);
     let named_phantoms = writer.generic_named_phantoms(generics);
     let constraints = writer.generic_constraints(generics);

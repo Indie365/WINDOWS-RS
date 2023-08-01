@@ -6,3 +6,7 @@ pub fn type_def_invoke_method(reader: &Reader, row: TypeDef) -> MethodDef {
         .find(|method| reader.method_def_name(*method) == "Invoke")
         .expect("`Invoke` method not found")
 }
+
+pub fn type_def_generics(reader: &Reader, def: TypeDef) -> Vec<Type> {
+    reader.type_def_generics(def).map(Type::GenericParam).collect()    
+}

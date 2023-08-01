@@ -8,7 +8,7 @@ pub fn verify(reader: &metadata::Reader, filter: &metadata::Filter) -> crate::Re
             continue;
         };
 
-        let generics = &reader.type_def_generics(def);
+        let generics = &metadata::type_def_generics(&reader, def);
 
         reader
             .type_def_fields(def)

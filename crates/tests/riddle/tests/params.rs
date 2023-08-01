@@ -12,7 +12,7 @@ fn test() {
         .expect("Type missing");
 
     assert_eq!(reader.type_def_kind(def), TypeKind::Interface);
-    let generics = &reader.type_def_generics(def);
+    let generics = &vec![];
 
     assert!(reader.type_def_fields(def).next().is_none());
     let methods: Vec<MethodDef> = reader.type_def_methods(def).collect();
