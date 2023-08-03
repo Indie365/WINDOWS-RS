@@ -71,7 +71,8 @@ pub fn writer(writer: &Writer, def: TypeDef) -> TokenStream {
     let method_traits = writer.reader.type_def_methods(def).map(|method| {
         let name = method_names.add(writer, method);
 
-        let signature = method_def_signature(writer.reader,
+        let signature = method_def_signature(
+            writer.reader,
             writer.reader.type_def_namespace(def),
             method,
             generics,

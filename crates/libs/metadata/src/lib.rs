@@ -326,19 +326,14 @@ impl<'a> Reader<'a> {
         })
     }
 
-    pub fn method_def_signature(&self, method: MethodDef,  generics: &[Type]) -> MethodDefSig {
+    pub fn method_def_signature(&self, method: MethodDef, generics: &[Type]) -> MethodDefSig {
         let mut blob = self.row_blob(method, 4);
         let call_flags = MethodCallAttributes(blob.read_usize() as u8);
         let params = blob.read_usize();
         let return_type = self.type_from_blob(&mut blob, None, generics);
 
-        MethodDefSig {
-            call_flags, 
-            return_type,
-            params: (0..params).map(|_|self.type_from_blob(&mut blob, None, generics)).collect(),
-        }
+        MethodDefSig { call_flags, return_type, params: (0..params).map(|_| self.type_from_blob(&mut blob, None, generics)).collect() }
     }
-
 
     pub fn method_def_extern_abi(&self, def: MethodDef) -> &'static str {
         let impl_map = self.method_def_impl_map(def).expect("ImplMap not found");
@@ -352,9 +347,9 @@ impl<'a> Reader<'a> {
             unimplemented!()
         }
     }
-    pub fn method_def_size(&self,  method: MethodDef) -> usize {
-        let sig = self.method_def_signature( method, &[]);
-        sig.params.iter().fold(0, |sum, param| sum + std::cmp::max(4, self.type_size(&param)))
+    pub fn method_def_size(&self, method: MethodDef) -> usize {
+        let sig = self.method_def_signature(method, &[]);
+        sig.params.iter().fold(0, |sum, param| sum + std::cmp::max(4, self.type_size(param)))
     }
     pub fn type_def_size(&self, def: TypeDef) -> usize {
         match self.type_def_kind(def) {
@@ -715,8 +710,6 @@ impl<'a> Reader<'a> {
     // Signature queries
     //
 
-
-
     //
     // Other type queries
     //
@@ -969,9 +962,6 @@ impl<'a> Reader<'a> {
             _ => false,
         }
     }
-
-
-
 
     pub fn type_is_primitive(&self, ty: &Type) -> bool {
         match ty {

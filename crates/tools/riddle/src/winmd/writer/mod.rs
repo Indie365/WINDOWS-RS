@@ -77,7 +77,12 @@ impl Writer {
         )
     }
 
-    pub fn insert_method_sig(&mut self, call_flags: metadata::MethodCallAttributes, return_type: &Type, param_types: &[Type]) -> u32 {
+    pub fn insert_method_sig(
+        &mut self,
+        call_flags: metadata::MethodCallAttributes,
+        return_type: &Type,
+        param_types: &[Type],
+    ) -> u32 {
         let mut blob = vec![call_flags.0];
         usize_blob(param_types.len(), &mut blob);
         self.type_blob(&return_type, &mut blob);
@@ -199,7 +204,6 @@ impl Writer {
                         self.type_blob(&ty, blob);
                     }
                 }
-
             }
             Type::BSTR => {
                 let code = self.insert_type_ref("Windows.Win32.Foundation", "BSTR");
@@ -259,10 +263,8 @@ impl Writer {
             }
             Type::GenericParam(index) => {
                 blob.push(ELEMENT_TYPE_VAR);
-                usize_blob(*index as usize, blob); 
-                
+                usize_blob(*index as usize, blob);
             }
-            rest => unimplemented!("{rest:?}"),
         }
     }
 }

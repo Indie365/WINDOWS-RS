@@ -60,11 +60,7 @@ pub fn type_def_cfg_impl<'a>(reader: &'a Reader, def: TypeDef, generics: &[Type]
         type_def_cfg_combine(reader, def, generics, cfg);
 
         for method in reader.type_def_methods(def) {
-            signature_cfg_combine(
-                reader,
-                &reader.method_def_signature( method, generics),
-                cfg,
-            );
+            signature_cfg_combine(reader, &reader.method_def_signature(method, generics), cfg);
         }
     }
 
@@ -140,10 +136,7 @@ pub fn type_def_cfg_combine<'a>(
             }
             TypeKind::Delegate => signature_cfg_combine(
                 reader,
-                &reader.method_def_signature(
-                    type_def_invoke_method(reader, row),
-                    generics,
-                ),
+                &reader.method_def_signature(type_def_invoke_method(reader, row), generics),
                 cfg,
             ),
             _ => {}
@@ -162,7 +155,7 @@ fn signature_cfg_combine<'a>(reader: &'a Reader, signature: &MethodDefSig, cfg: 
     signature
         .params
         .iter()
-        .for_each(|param| type_cfg_combine(reader, &param, cfg));
+        .for_each(|param| type_cfg_combine(reader, param, cfg));
 }
 
 fn cfg_add_attributes<R: AsRow + Into<HasAttribute>>(reader: &Reader, cfg: &mut Cfg, row: R) {

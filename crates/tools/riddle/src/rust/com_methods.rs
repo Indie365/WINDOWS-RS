@@ -9,10 +9,12 @@ pub fn writer(
     virtual_names: &mut MethodNames,
     base_count: usize,
 ) -> TokenStream {
-    let signature =
-    method_def_signature(writer
-            .reader
-            ,writer.reader.type_def_namespace(def), method, &[]);
+    let signature = method_def_signature(
+        writer.reader,
+        writer.reader.type_def_namespace(def),
+        method,
+        &[],
+    );
 
     let name = method_names.add(writer, method);
     let vname = virtual_names.add(writer, method);
@@ -33,7 +35,7 @@ pub fn writer(
         bases.combine(&quote! { .base__ });
     }
 
-    let kind = signature_kind(writer.reader,&signature);
+    let kind = signature_kind(writer.reader, &signature);
     match kind {
         SignatureKind::Query(_) => {
             let args = writer.win32_args(&signature.params, kind);
@@ -166,7 +168,7 @@ pub fn writer(
 }
 
 pub fn gen_upcall(writer: &Writer, sig: &Signature, inner: TokenStream) -> TokenStream {
-    match signature_kind(writer.reader,sig) {
+    match signature_kind(writer.reader, sig) {
         SignatureKind::ResultValue => {
             let invoke_args = sig.params[..sig.params.len() - 1]
                 .iter()
