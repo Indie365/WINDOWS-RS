@@ -77,19 +77,18 @@ impl Writer {
         )
     }
 
-    pub fn insert_method_sig(&mut self, sig: &Signature) -> u32 {
-        let mut blob = vec![sig.call_flags];
-        usize_blob(sig.params.len(), &mut blob);
-        self.type_blob(&sig.return_type, &mut blob);
+    pub fn insert_method_sig(&mut self, call_flags: metadata::MethodCallAttributes, return_type: &Type, param_types: &[Type]) -> u32 {
+        let mut blob = vec![call_flags.0];
+        usize_blob(param_types.len(), &mut blob);
+        self.type_blob(&return_type, &mut blob);
 
-        for param in &sig.params {
-            self.type_blob(&param.ty, &mut blob);
+        for ty in param_types {
+            self.type_blob(ty, &mut blob);
         }
 
         self.blobs.insert(&blob)
     }
 
-    // TODO: remove this
     pub fn insert_field_sig(&mut self, ty: &Type) -> u32 {
         // TODO: can either cache in Writer, like we do for scopes and references, or regenerate each time.
         // Profile once we can stress test this with field/method signatures.
@@ -99,16 +98,6 @@ impl Writer {
 
         self.blobs.insert(&blob)
     }
-
-    // pub fn insert_field_sig2(&mut self, ty: &metadata::Type) -> u32 {
-    //     // TODO: should we either cache in Writer, like we do for scopes and references, or regenerate each time.
-    //     // Profile once we can stress test this with field/method signatures.
-
-    //     let mut blob = vec![0x6]; // FIELD
-    //     self.type_blob2(ty, &mut blob);
-
-    //     self.blobs.insert(&blob)
-    // }
 
     fn insert_scope(&mut self, namespace: &str) -> u32 {
         if let Some(scope) = self.scopes.get(namespace) {
@@ -166,31 +155,6 @@ impl Writer {
         reference
     }
 
-    // fn type_blob2(&mut self, ty: &metadata::Type, blob: &mut Vec<u8>) {
-    //     match ty {
-    //         metadata::Type::Void => blob.push(ELEMENT_TYPE_VOID),
-    //         metadata::Type::Bool => blob.push(ELEMENT_TYPE_BOOLEAN),
-    //         metadata::Type::Char => blob.push(ELEMENT_TYPE_CHAR),
-    //         metadata::Type::I8 => blob.push(ELEMENT_TYPE_I1),
-    //         metadata::Type::U8 => blob.push(ELEMENT_TYPE_U1),
-    //         metadata::Type::I16 => blob.push(ELEMENT_TYPE_I2),
-    //         metadata::Type::U16 => blob.push(ELEMENT_TYPE_U2),
-    //         metadata::Type::I32 => blob.push(ELEMENT_TYPE_I4),
-    //         metadata::Type::U32 => blob.push(ELEMENT_TYPE_U4),
-    //         metadata::Type::I64 => blob.push(ELEMENT_TYPE_I8),
-    //         metadata::Type::U64 => blob.push(ELEMENT_TYPE_U8),
-    //         metadata::Type::F32 => blob.push(ELEMENT_TYPE_R4),
-    //         metadata::Type::F64 => blob.push(ELEMENT_TYPE_R8),
-    //         metadata::Type::ISize => blob.push(ELEMENT_TYPE_I),
-    //         metadata::Type::USize => blob.push(ELEMENT_TYPE_U),
-    //         metadata::Type::String => blob.push(ELEMENT_TYPE_STRING),
-    //         metadata::Type::IInspectable => blob.push(ELEMENT_TYPE_OBJECT),
-
-    //         rest => unimplemented!("{rest:?}"),
-    //     }
-    // }
-
-    // TODO: remove this
     fn type_blob(&mut self, ty: &Type, blob: &mut Vec<u8>) {
         match ty {
             Type::Void => blob.push(ELEMENT_TYPE_VOID),

@@ -71,7 +71,7 @@ pub fn writer(writer: &Writer, def: TypeDef) -> TokenStream {
     let method_traits = writer.reader.type_def_methods(def).map(|method| {
         let name = method_names.add(writer, method);
 
-        let signature = writer.reader.method_def_signature(
+        let signature = method_def_signature(writer.reader,
             writer.reader.type_def_namespace(def),
             method,
             generics,
@@ -86,7 +86,7 @@ pub fn writer(writer: &Writer, def: TypeDef) -> TokenStream {
 
     let method_impls = writer.reader.type_def_methods(def).map(|method| {
         let name = method_names.add(writer, method);
-        let signature = writer.reader.method_def_signature(writer.reader.type_def_namespace(def), method, generics);
+        let signature = method_def_signature(writer.reader,writer.reader.type_def_namespace(def), method, generics);
         let vtbl_signature = writer.vtbl_signature(def, generics, &signature);
 
         let invoke_upcall = if writer.reader.type_def_flags(def).contains(TypeAttributes::WindowsRuntime) { winrt_methods::gen_upcall(writer, &signature, quote! { this.#name }) } else { com_methods::gen_upcall(writer, &signature, quote! { this.#name }) };

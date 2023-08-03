@@ -212,7 +212,7 @@ pub trait RowReader<'a> {
     //
 
     fn method_def_impl_flags(&self, row: MethodDef) -> MethodImplAttributes {
-        MethodImplAttributes(self.row_usize(row, 1))
+        MethodImplAttributes(self.row_usize(row, 1) as u16)
     }
 
     fn method_def_flags(&self, row: MethodDef) -> MethodAttributes {
@@ -268,8 +268,8 @@ pub trait RowReader<'a> {
         ParamAttributes(self.row_usize(row, 0) as u16)
     }
 
-    fn param_sequence(&self, row: Param) -> usize {
-        self.row_usize(row, 1)
+    fn param_sequence(&self, row: Param) -> u16 {
+        self.row_usize(row, 1) as u16
     }
 
     fn param_name(&self, row: Param) -> &'a str {

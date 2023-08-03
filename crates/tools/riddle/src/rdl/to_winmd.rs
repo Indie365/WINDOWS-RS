@@ -114,25 +114,25 @@ fn write_interface(
     });
 
     for method in &member.methods {
-        let sig = syn_signature(namespace, &method.sig);
-        let signature = writer.insert_method_sig(&sig);
+        //let sig = syn_signature(namespace, &method.sig);
+        //let signature = writer.insert_method_sig(MethodCallAttributes::
 
-        writer.tables.MethodDef.push(winmd::MethodDef {
-            RVA: 0,
-            ImplFlags: 0,
-            Flags: 0,
-            Name: writer.strings.insert(&method.sig.ident.to_string()),
-            Signature: signature,
-            ParamList: writer.tables.Param.len() as u32,
-        });
+        // writer.tables.MethodDef.push(winmd::MethodDef {
+        //     RVA: 0,
+        //     ImplFlags: 0,
+        //     Flags: 0,
+        //     Name: writer.strings.insert(&method.sig.ident.to_string()),
+        //     Signature: signature,
+        //     ParamList: writer.tables.Param.len() as u32,
+        // });
 
-        for (sequence, param) in sig.params.iter().enumerate() {
-            writer.tables.Param.push(winmd::Param {
-                Flags: 0,
-                Sequence: (sequence + 1) as u16,
-                Name: writer.strings.insert(&param.name),
-            });
-        }
+        // for (sequence, param) in sig.params.iter().enumerate() {
+        //     writer.tables.Param.push(winmd::Param {
+        //         Flags: 0,
+        //         Sequence: (sequence + 1) as u16,
+        //         Name: writer.strings.insert(&param.name),
+        //     });
+        // }
     }
 }
 

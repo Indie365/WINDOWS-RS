@@ -60,27 +60,26 @@ pub fn from_reader(
         }
 
         for method in reader.type_def_methods(def) {
-            let name = reader.method_def_name(method);
-            let sig = winmd_signature(
-                reader,
-                &reader.method_def_signature(reader.type_def_namespace(def), method, generics),
-            );
-            let signature = writer.insert_method_sig(&sig);
+            let signature = reader.method_def_signature(method, generics);
+            let return_type = winmd_type(reader, &signature.return_type);
+            let param_types: Vec<Type> = signature.params.iter().map(|param|winmd_type(reader, param)).collect();
+
+            let signature = writer.insert_method_sig(signature.call_flags, &return_type, &param_types);
 
             writer.tables.MethodDef.push(winmd::MethodDef {
                 RVA: 0,
-                ImplFlags: 0,
-                Flags: 0,
-                Name: writer.strings.insert(name),
+                ImplFlags: reader.method_def_impl_flags(method).0,
+                Flags: reader.method_def_flags(method).0,
+                Name: writer.strings.insert(reader.method_def_name(method)),
                 Signature: signature,
                 ParamList: writer.tables.Param.len() as u32,
             });
 
-            for (sequence, param) in sig.params.iter().enumerate() {
+            for param in reader.method_def_params(method) {
                 writer.tables.Param.push(writer::Param {
-                    Flags: 0,
-                    Sequence: (sequence + 1) as u16,
-                    Name: writer.strings.insert(&param.name),
+                    Flags: reader.param_flags(param).0,
+                    Sequence: reader.param_sequence(param),
+                    Name: writer.strings.insert(reader.param_name(param)),
                 });
             }
         }
@@ -91,8 +90,7 @@ pub fn from_reader(
     crate::write_to_file(output, writer.into_stream()).map_err(|err| err.with_path(output))
 }
 
-// TODO: get rid of this temporary translation
-
+// TODO: get rid of this signature conversion
 fn winmd_signature(reader: &metadata::Reader, sig: &metadata::Signature) -> winmd::Signature {
     let params = sig
         .params
@@ -112,6 +110,7 @@ fn winmd_signature(reader: &metadata::Reader, sig: &metadata::Signature) -> winm
     }
 }
 
+// TODO: keep the basic type conversion
 fn winmd_type(reader: &metadata::Reader, ty: &metadata::Type) -> winmd::Type {
     match ty {
         metadata::Type::Void => winmd::Type::Void,

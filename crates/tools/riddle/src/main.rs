@@ -60,9 +60,9 @@ Options:
 
         match kind {
             ArgKind::None => match arg.as_str() {
-                "--in" => kind = ArgKind::Input,
-                "--out" => kind = ArgKind::Output,
-                "--filter" => kind = ArgKind::Filter,
+                "-i" | "--in" => kind = ArgKind::Input,
+                "-o" | "--out" => kind = ArgKind::Output,
+                "-f" | "--filter" => kind = ArgKind::Filter,
                 "--config" => kind = ArgKind::Config,
                 "--format" => format = true,
                 _ => return Err(Error::new(&format!("invalid option `{arg}`"))),
