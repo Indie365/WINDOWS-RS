@@ -175,6 +175,10 @@ pub trait RowReader<'a> {
     // GenericParam
     //
 
+    fn generic_param_number(&self, row: GenericParam) -> u16 {
+        self.row_usize(row, 0) as u16
+    }
+
     fn generic_param_name(&self, row: GenericParam) -> &'a str {
         self.row_str(row, 3)
     }

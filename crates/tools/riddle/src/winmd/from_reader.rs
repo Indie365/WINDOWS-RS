@@ -144,6 +144,10 @@ fn winmd_type(reader: &metadata::Reader, ty: &metadata::Type) -> winmd::Type {
             name: reader.type_def_name(*def).to_string(),
             generics: generics.iter().map(|ty| winmd_type(reader, ty)).collect(),
         }),
+        metadata::Type::GenericParam(generic) => winmd::Type::GenericParam(reader.generic_param_number(*generic)),
+        metadata::Type::ConstRef(ty) => winmd::Type::ConstRef(Box::new(winmd_type(reader, ty))),
+        metadata::Type::WinrtArrayRef(ty) => winmd::Type::WinrtArrayRef(Box::new(winmd_type(reader, ty))),
+        metadata::Type::WinrtArray(ty) => winmd::Type::WinrtArray(Box::new(winmd_type(reader, ty))),
         rest => unimplemented!("{rest:?}"),
     }
 }

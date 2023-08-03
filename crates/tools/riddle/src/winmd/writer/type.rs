@@ -36,7 +36,7 @@ pub enum Type {
     BSTR,
     TypeName,
     TypeRef(TypeName),
-    GenericParam(String),
+    GenericParam(u16),
     MutPtr(Box<Self>, usize),
     ConstPtr(Box<Self>, usize),
     Win32Array(Box<Self>, usize),

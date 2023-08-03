@@ -918,7 +918,7 @@ impl<'a> Reader<'a> {
                 Type::Win32Array(Box::new(kind), bounds)
             }
             ELEMENT_TYPE_GENERICINST => {
-                blob.read_usize();
+                blob.read_usize(); // ELEMENT_TYPE_VALUETYPE or ELEMENT_TYPE_CLASS
 
                 let def = self.get_type_def(self.type_def_or_ref(TypeDefOrRef::decode(blob.file, blob.read_usize()))).next().expect("Type not found");
                 let mut args = Vec::with_capacity(blob.read_usize());

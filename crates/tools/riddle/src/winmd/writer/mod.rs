@@ -185,9 +185,21 @@ impl Writer {
                 usize_blob(code as usize, blob);
             }
             Type::TypeRef(ty) => {
+                if !ty.generics.is_empty() {
+                    blob.push(ELEMENT_TYPE_GENERICINST);
+                }
                 let code = self.insert_type_ref(&ty.namespace, &ty.name);
                 blob.push(ELEMENT_TYPE_VALUETYPE);
                 usize_blob(code as usize, blob);
+
+                if !ty.generics.is_empty() {
+                    usize_blob(ty.generics.len(), blob);
+
+                    for ty in &ty.generics {
+                        self.type_blob(&ty, blob);
+                    }
+                }
+
             }
             Type::BSTR => {
                 let code = self.insert_type_ref("Windows.Win32.Foundation", "BSTR");
@@ -244,6 +256,11 @@ impl Writer {
                     usize_blob(ELEMENT_TYPE_PTR as usize, blob);
                 }
                 self.type_blob(ty, blob);
+            }
+            Type::GenericParam(index) => {
+                blob.push(ELEMENT_TYPE_VAR);
+                usize_blob(*index as usize, blob); 
+                
             }
             rest => unimplemented!("{rest:?}"),
         }
