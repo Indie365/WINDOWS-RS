@@ -29,7 +29,7 @@ pub fn from_reader(
             continue;
         };
 
-        let generics = &metadata::type_def_generics(&reader, def);
+        let generics = &metadata::type_def_generics(reader, def);
 
         let extends = if let Some(extends) = reader.type_def_extends(def) {
             writer.insert_type_ref(extends.namespace, extends.name)

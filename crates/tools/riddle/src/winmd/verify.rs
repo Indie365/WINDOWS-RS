@@ -8,7 +8,7 @@ pub fn verify(reader: &metadata::Reader, filter: &metadata::Filter) -> crate::Re
             continue;
         };
 
-        let generics = &metadata::type_def_generics(&reader, def);
+        let generics = &metadata::type_def_generics(reader, def);
 
         reader
             .type_def_fields(def)
@@ -20,7 +20,7 @@ pub fn verify(reader: &metadata::Reader, filter: &metadata::Filter) -> crate::Re
 
             sig.params
                 .iter()
-                .try_for_each(|param| not_type_ref(reader, &param))
+                .try_for_each(|param| not_type_ref(reader, param))
         })?;
     }
 

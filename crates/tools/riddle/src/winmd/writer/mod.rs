@@ -85,7 +85,7 @@ impl Writer {
     ) -> u32 {
         let mut blob = vec![call_flags.0];
         usize_blob(param_types.len(), &mut blob);
-        self.type_blob(&return_type, &mut blob);
+        self.type_blob(return_type, &mut blob);
 
         for ty in param_types {
             self.type_blob(ty, &mut blob);
@@ -201,7 +201,7 @@ impl Writer {
                     usize_blob(ty.generics.len(), blob);
 
                     for ty in &ty.generics {
-                        self.type_blob(&ty, blob);
+                        self.type_blob(ty, blob);
                     }
                 }
             }

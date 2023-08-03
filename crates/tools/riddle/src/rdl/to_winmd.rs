@@ -113,7 +113,7 @@ fn write_interface(
         TypeNamespace: writer.strings.insert(namespace),
     });
 
-    for method in &member.methods {
+    for _method in &member.methods {
         //let sig = syn_signature(namespace, &method.sig);
         //let signature = writer.insert_method_sig(MethodCallAttributes::
 
