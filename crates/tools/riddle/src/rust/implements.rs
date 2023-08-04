@@ -52,9 +52,9 @@ pub fn writer(writer: &Writer, def: TypeDef) -> TokenStream {
         .contains(TypeAttributes::WindowsRuntime)
     {
         // TODO: this awkward wrapping of TypeDefs needs fixing
-        for interface in writer
+        for interface in type_interfaces(writer
             .reader
-            .type_interfaces(&Type::TypeDef(def, generics.to_vec()))
+            ,&Type::TypeDef(def, generics.to_vec()))
         {
             if let Type::TypeDef(def, generics) = interface.ty {
                 requires.combine(&gen_required_trait(writer, def, &generics));

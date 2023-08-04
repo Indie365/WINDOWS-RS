@@ -24,23 +24,6 @@ use std::collections::*;
 pub use type_name::TypeName;
 
 // TODO: move to riddle/rust
-#[derive(Clone)]
-pub struct Interface {
-    pub ty: Type,
-    pub kind: InterfaceKind,
-}
-
-// TODO: move to riddle/rust
-#[derive(Copy, Clone, PartialEq, Eq)]
-pub enum InterfaceKind {
-    None,
-    Default,
-    Overridable,
-    Static,
-    Base,
-}
-
-// TODO: move to riddle/rust
 #[derive(PartialEq, Eq, Debug)]
 pub enum AsyncKind {
     None,
@@ -275,7 +258,7 @@ impl<'a> Reader<'a> {
     // InterfaceImpl table queries
     //
 
-    fn interface_impl_type(&self, row: InterfaceImpl, generics: &[Type]) -> Type {
+    pub fn interface_impl_type(&self, row: InterfaceImpl, generics: &[Type]) -> Type {
         self.type_from_ref(self.row_decode(row, 1), None, generics)
     }
 
@@ -696,68 +679,6 @@ impl<'a> Reader<'a> {
     // Other type queries
     //
 
-    pub fn type_interfaces(&self, ty: &Type) -> Vec<Interface> {
-        // TODO: collect into btree map and then return collected vec
-        // This will both sort the results and should make finding dupes faster
-        fn walk(reader: &Reader, result: &mut Vec<Interface>, parent: &Type, is_base: bool) {
-            if let Type::TypeDef(row, generics) = parent {
-                for imp in reader.type_def_interface_impls(*row) {
-                    let mut child = Interface {
-                     ty : reader.interface_impl_type(imp, generics),
-                     kind: if reader.has_attribute(imp, "DefaultAttribute") { InterfaceKind::Default } else { InterfaceKind::None },
-                    };
-
-                    child.kind = if !is_base && child.kind == InterfaceKind::Default {
-                        InterfaceKind::Default
-                    } else if child.kind == InterfaceKind::Overridable {
-                        continue;
-                    } else if is_base {
-                        InterfaceKind::Base
-                    } else {
-                        InterfaceKind::None
-                    };
-                    let mut found = false;
-                    for existing in result.iter_mut() {
-                        if existing.ty == child.ty {
-                            found = true;
-                            if child.kind == InterfaceKind::Default {
-                                existing.kind = child.kind
-                            }
-                        }
-                    }
-                    if !found {
-                        walk(reader, result, &child.ty, is_base);
-                        result.push(child);
-                    }
-                }
-            }
-        }
-        let mut result = Vec::new();
-        walk(self, &mut result, ty, false);
-        if let Type::TypeDef(row, _) = ty {
-            if self.type_def_kind(*row) == TypeKind::Class {
-                for base in self.type_def_bases(*row) {
-                    walk(self, &mut result, &Type::TypeDef(base, Vec::new()), true);
-                }
-                for attribute in self.attributes(*row) {
-                    match self.attribute_name(attribute) {
-                        "StaticAttribute" | "ActivatableAttribute" => {
-                            for (_, arg) in self.attribute_args(attribute) {
-                                if let Value::TypeName(type_name) = arg {
-                                    let def = self.get_type_def(TypeName::parse(&type_name)).next().expect("Type not found");
-                                    result.push(Interface { ty: Type::TypeDef(def, Vec::new()), kind: InterfaceKind::Static });
-                                    break;
-                                }
-                            }
-                        }
-                        _ => {}
-                    }
-                }
-            }
-        }
-        result.sort_by(|a, b| self.type_name(&a.ty).cmp(self.type_name(&b.ty)));
-        result
-    }
     pub fn type_def_or_ref(&self, code: TypeDefOrRef) -> TypeName {
         match code {
             TypeDefOrRef::TypeDef(row) => TypeName::new(self.type_def_namespace(row), self.type_def_name(row)),
@@ -912,12 +833,7 @@ impl<'a> Reader<'a> {
             rest => unimplemented!("{rest:?}"),
         }
     }
-    fn type_name(&self, ty: &Type) -> &str {
-        match ty {
-            Type::TypeDef(row, _) => self.type_def_name(*row),
-            _ => "",
-        }
-    }
+
     fn type_signature(&self, ty: &Type) -> String {
         match ty {
             Type::Bool => "b1".to_string(),

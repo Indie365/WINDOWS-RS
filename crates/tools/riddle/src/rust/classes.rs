@@ -21,9 +21,9 @@ fn gen_class(writer: &Writer, def: TypeDef) -> TokenStream {
     }
 
     let name = to_ident(writer.reader.type_def_name(def));
-    let interfaces = writer
+    let interfaces = type_interfaces(writer
         .reader
-        .type_interfaces(&Type::TypeDef(def, Vec::new()));
+        ,&Type::TypeDef(def, Vec::new()));
     let mut methods = quote! {};
     let mut method_names = MethodNames::new();
 

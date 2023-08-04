@@ -1,6 +1,21 @@
 use std::collections::*;
 pub use windows_metadata::*;
 
+#[derive(Clone)]
+pub struct Interface {
+    pub ty: Type,
+    pub kind: InterfaceKind,
+}
+
+#[derive(Copy, Clone, PartialEq, Eq)]
+pub enum InterfaceKind {
+    None,
+    Default,
+    Overridable,
+    Static,
+    Base,
+}
+
 #[derive(Copy, Clone, PartialEq, Eq)]
 pub struct QueryPosition {
     pub object: usize,
@@ -471,5 +486,76 @@ pub fn type_def_has_callback(reader: &Reader, row: TypeDef) -> bool {
             }
         }
         false
+    }
+}
+
+
+pub fn type_interfaces(reader: &Reader, ty: &Type) -> Vec<Interface> {
+    // TODO: collect into btree map and then return collected vec
+    // This will both sort the results and should make finding dupes faster
+    fn walk(reader: &Reader, result: &mut Vec<Interface>, parent: &Type, is_base: bool) {
+        if let Type::TypeDef(row, generics) = parent {
+            for imp in reader.type_def_interface_impls(*row) {
+                let mut child = Interface {
+                 ty : reader.interface_impl_type(imp, generics),
+                 kind: if reader.has_attribute(imp, "DefaultAttribute") { InterfaceKind::Default } else { InterfaceKind::None },
+                };
+
+                child.kind = if !is_base && child.kind == InterfaceKind::Default {
+                    InterfaceKind::Default
+                } else if child.kind == InterfaceKind::Overridable {
+                    continue;
+                } else if is_base {
+                    InterfaceKind::Base
+                } else {
+                    InterfaceKind::None
+                };
+                let mut found = false;
+                for existing in result.iter_mut() {
+                    if existing.ty == child.ty {
+                        found = true;
+                        if child.kind == InterfaceKind::Default {
+                            existing.kind = child.kind
+                        }
+                    }
+                }
+                if !found {
+                    walk(reader, result, &child.ty, is_base);
+                    result.push(child);
+                }
+            }
+        }
+    }
+    let mut result = Vec::new();
+    walk(reader, &mut result, ty, false);
+    if let Type::TypeDef(row, _) = ty {
+        if reader.type_def_kind(*row) == TypeKind::Class {
+            for base in reader.type_def_bases(*row) {
+                walk(reader, &mut result, &Type::TypeDef(base, Vec::new()), true);
+            }
+            for attribute in reader.attributes(*row) {
+                match reader.attribute_name(attribute) {
+                    "StaticAttribute" | "ActivatableAttribute" => {
+                        for (_, arg) in reader.attribute_args(attribute) {
+                            if let Value::TypeName(type_name) = arg {
+                                let def = reader.get_type_def(TypeName::parse(&type_name)).next().expect("Type not found");
+                                result.push(Interface { ty: Type::TypeDef(def, Vec::new()), kind: InterfaceKind::Static });
+                                break;
+                            }
+                        }
+                    }
+                    _ => {}
+                }
+            }
+        }
+    }
+    result.sort_by(|a, b| type_name(reader, &a.ty).cmp(type_name(reader, &b.ty)));
+    result
+}
+
+fn type_name<'a> (reader: &Reader<'a>, ty: &Type) -> &'a str {
+    match ty {
+        Type::TypeDef(row, _) => reader.type_def_name(*row),
+        _ => "",
     }
 }
