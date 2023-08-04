@@ -139,7 +139,6 @@ fn write_interface(
 fn write_struct(writer: &mut winmd::Writer, namespace: &str, name: &str, member: &rdl::Struct) {
     let mut flags = metadata::TypeAttributes::Public
         | metadata::TypeAttributes::Sealed
-        | metadata::TypeAttributes::Import
         | metadata::TypeAttributes::SequentialLayout;
 
     if member.winrt {
@@ -158,11 +157,12 @@ fn write_struct(writer: &mut winmd::Writer, namespace: &str, name: &str, member:
     });
 
     for field in &member.fields {
+        let flags = metadata::FieldAttributes::Public;
         let ty = syn_type(namespace, &field.ty);
         let signature = writer.insert_field_sig(&ty);
 
         writer.tables.Field.push(winmd::Field {
-            Flags: 0,
+            Flags: flags.0,
             Name: writer.strings.insert(&field.name),
             Signature: signature,
         });
