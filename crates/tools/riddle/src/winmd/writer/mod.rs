@@ -8,7 +8,7 @@ mod r#type;
 
 use super::*;
 use blobs::Blobs;
-use codes::*;
+pub use codes::*;
 use metadata::imp::*;
 pub use r#type::*;
 use std::collections::HashMap;

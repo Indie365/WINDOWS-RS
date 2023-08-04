@@ -46,6 +46,15 @@ pub fn from_reader(
             TypeNamespace: writer.strings.insert(reader.type_def_namespace(def)),
         });
 
+        for generic in reader.type_def_generics(def) {
+            writer.tables.GenericParam.push(writer::GenericParam {
+                Number: reader.generic_param_number(generic),
+                Flags: 0,
+                Owner: writer::TypeOrMethodDef::TypeDef(writer.tables.TypeDef.len() as u32 -1).encode() as u32,
+                Name: writer.strings.insert(reader.generic_param_name(generic)),
+            });
+        }
+
         // TODO: if the class is "Apis" then should we sort the fields (constants) and methods (functions) for stability
 
         for field in reader.type_def_fields(def) {
@@ -157,6 +166,9 @@ fn winmd_type(reader: &metadata::Reader, ty: &metadata::Type) -> winmd::Type {
             winmd::Type::WinrtArrayRef(Box::new(winmd_type(reader, ty)))
         }
         metadata::Type::WinrtArray(ty) => winmd::Type::WinrtArray(Box::new(winmd_type(reader, ty))),
+        metadata::Type::MutPtr(ty, pointers) => winmd::Type::MutPtr(Box::new(winmd_type(reader, ty)), *pointers),
+        metadata::Type::ConstPtr(ty, pointers) => winmd::Type::ConstPtr(Box::new(winmd_type(reader, ty)), *pointers),
+        metadata::Type::Win32Array(ty, len) => winmd::Type::Win32Array(Box::new(winmd_type(reader, ty)), *len),
         rest => unimplemented!("{rest:?}"),
     }
 }

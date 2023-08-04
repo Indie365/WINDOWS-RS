@@ -6,6 +6,8 @@ use metadata::imp::coded_index_size;
 
 #[derive(Default)]
 pub struct Tables {
+    // TODO: use BTreeSet for tables that have a primary key, unless they are naturally sorted. 
+
     pub Assembly: Vec<Assembly>,
     pub AssemblyRef: Vec<AssemblyRef>,
     pub ClassLayout: Vec<ClassLayout>,
@@ -210,10 +212,15 @@ impl Tables {
             self.AssemblyRef.len(),
             self.TypeRef.len(),
         ]);
+
         let type_def_or_ref =
             coded_index_size(&[self.TypeDef.len(), self.TypeRef.len(), self.TypeSpec.len()]);
+
         let has_constant =
             coded_index_size(&[self.Field.len(), self.Param.len(), self.Property.len()]);
+
+            let type_or_method_def =
+            coded_index_size(&[self.TypeDef.len(), self.MethodDef.len()]);
 
         let valid_tables: u64 = 1 << 0 | // Module 
         1 << 0x01 | // TypeRef
@@ -343,6 +350,33 @@ impl Tables {
             buffer.write_u32(x.Culture);
             buffer.write_u32(x.HashValue);
         }
+
+        for x in self.GenericParam {
+            buffer.write_u16(x.Number);
+            buffer.write_u16(x.Flags);
+            buffer.write_code(x.Owner, type_or_method_def);
+            buffer.write_u32(x.Name);
+        }
+
+        // TODO: sort GenericParam table prior to writing. This needs to be done for all tables with a primary index. See II.22
+
+        // TODO: do these get naturally sorted by virtue of how they're pushed into "tables" in type def order?
+
+        // Table                    Primary Key Column
+        // ClassLayout              Parent
+        // Constant                 Parent
+        // CustomAttribute          Parent
+        // DeclSecurity             Parent
+        // FieldLayout              Field
+        // FieldMarshal             Parent
+        // FieldRVA                 Field
+        // GenericParam             Owner
+        // GenericParamConstraint   Owner
+        // ImplMap                  MemberForwarded
+        // InterfaceImpl            Class
+        // MethodImpl               Class
+        // MethodSemantics          Association
+        // NestedClass              NestedClass
 
         buffer.into_stream()
     }
