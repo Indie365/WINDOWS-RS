@@ -287,6 +287,8 @@ impl<'a> Writer<'a> {
         let name = to_ident(self.reader.type_def_name(def));
         let generics = &metadata::type_def_generics(self.reader, def);
 
+        let implements = self.implements(def);
+
         let methods = self.reader.type_def_methods(def).map(|method| {
             let name = to_ident(self.reader.method_def_name(method));
 
@@ -312,10 +314,16 @@ impl<'a> Writer<'a> {
         });
 
         quote! {
-            interface #name {
+            interface #name #implements {
                 #(#methods)*
             }
         }
+    }
+
+    fn implements(&self, def: metadata::TypeDef) -> TokenStream {
+        // TODO: if a winrt composable class then start with base
+
+        quote! {}
     }
 
     fn return_type(&self, ty: &metadata::Type) -> TokenStream {

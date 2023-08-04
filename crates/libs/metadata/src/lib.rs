@@ -275,16 +275,8 @@ impl<'a> Reader<'a> {
     // InterfaceImpl table queries
     //
 
-    fn interface_impl_type(&self, row: InterfaceImpl, generics: &[Type]) -> Interface {
-        let mut kind = InterfaceKind::None;
-        for attribute in self.attributes(row) {
-            match self.attribute_name(attribute) {
-                "DefaultAttribute" => kind = InterfaceKind::Default,
-                "OverridableAttribute" => kind = InterfaceKind::Overridable,
-                _ => {}
-            }
-        }
-        Interface { ty: self.type_from_ref(self.row_decode(row, 1), None, generics), kind }
+    fn interface_impl_type(&self, row: InterfaceImpl, generics: &[Type]) -> Type {
+        self.type_from_ref(self.row_decode(row, 1), None, generics)
     }
 
     //
@@ -462,11 +454,19 @@ impl<'a> Reader<'a> {
         }
         false
     }
-    pub fn type_def_interfaces(&'a self, row: TypeDef, generics: &'a [Type]) -> impl Iterator<Item = Interface> + '_ {
+
+    pub fn type_def_interfaces(&'a self, row: TypeDef, generics: &'a [Type]) -> impl Iterator<Item = Type> + '_ {
         self.type_def_interface_impls(row).map(move |row| self.interface_impl_type(row, generics))
     }
+
     pub fn type_def_default_interface(&self, row: TypeDef) -> Option<Type> {
-        self.type_def_interfaces(row, &[]).find(|interface| interface.kind == InterfaceKind::Default).map(|interface| interface.ty)
+        self.type_def_interface_impls(row).find_map(move |row| {
+            if self.has_attribute(row, "DefaultAttribute") {
+                Some(self.interface_impl_type(row, &[]))
+            } else {
+                None
+            }
+        })
     }
     pub fn type_def_has_default_interface(&self, row: TypeDef) -> bool {
         self.type_def_interface_impls(row).any(|imp| self.has_attribute(imp, "DefaultAttribute"))
@@ -603,25 +603,7 @@ impl<'a> Reader<'a> {
             _ => false,
         }
     }
-    pub fn type_def_can_implement(&self, row: TypeDef) -> bool {
-        if let Some(attribute) = self.find_attribute(row, "ExclusiveToAttribute") {
-            for (_, arg) in self.attribute_args(attribute) {
-                if let Value::TypeName(type_name) = arg {
-                    for child in self.get_type_def(TypeName::parse(&type_name)).flat_map(|def| self.type_def_interfaces(def, &[])) {
-                        if child.kind == InterfaceKind::Overridable {
-                            if let Type::TypeDef(def, _) = child.ty {
-                                if self.type_def_type_name(def) == self.type_def_type_name(row) {
-                                    return true;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            return false;
-        }
-        true
-    }
+
     pub fn type_def_async_kind(&self, row: TypeDef) -> AsyncKind {
         match self.type_def_type_name(row) {
             TypeName::IAsyncAction => AsyncKind::Action,
@@ -635,7 +617,7 @@ impl<'a> Reader<'a> {
         match self.type_def_kind(row) {
             TypeKind::Interface => self.type_def_interface_signature(row, generics),
             TypeKind::Class => {
-                if let Type::TypeDef(default, generics) = self.type_def_interfaces(row, generics).find(|row| row.kind == InterfaceKind::Default).expect("Default interface not found").ty {
+                if let Some(Type::TypeDef(default, generics)) = self.type_def_default_interface(row) {
                     format!("rc({};{})", self.type_def_type_name(row), self.type_def_interface_signature(default, &generics))
                 } else {
                     unimplemented!();
@@ -685,10 +667,10 @@ impl<'a> Reader<'a> {
         } else {
             let mut next = row;
             while let Some(base) = self.type_def_interfaces(next, &[]).next() {
-                match base.ty {
+                match base {
                     Type::TypeDef(row, _) => {
                         next = row;
-                        result.insert(0, base.ty);
+                        result.insert(0, base);
                     }
                     Type::IInspectable => {
                         result.insert(0, Type::IUnknown);
@@ -719,7 +701,12 @@ impl<'a> Reader<'a> {
         // This will both sort the results and should make finding dupes faster
         fn walk(reader: &Reader, result: &mut Vec<Interface>, parent: &Type, is_base: bool) {
             if let Type::TypeDef(row, generics) = parent {
-                for mut child in reader.type_def_interfaces(*row, generics) {
+                for imp in reader.type_def_interface_impls(*row) {
+                    let mut child = Interface {
+                     ty : reader.interface_impl_type(imp, generics),
+                     kind: if reader.has_attribute(imp, "DefaultAttribute") { InterfaceKind::Default } else { InterfaceKind::None },
+                    };
+
                     child.kind = if !is_base && child.kind == InterfaceKind::Default {
                         InterfaceKind::Default
                     } else if child.kind == InterfaceKind::Overridable {

@@ -2,7 +2,7 @@ use super::*;
 
 pub fn writer(writer: &Writer, def: TypeDef) -> TokenStream {
     if writer.reader.type_def_kind(def) != TypeKind::Interface
-        || (!writer.implement && !writer.reader.type_def_can_implement(def))
+        || (!writer.implement && writer.reader.has_attribute(def, "ExclusiveToAttribute"))
     {
         return quote! {};
     }

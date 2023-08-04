@@ -629,7 +629,7 @@ impl<'a> Writer<'a> {
 
         if kind == AsyncKind::None {
             for interface in self.reader.type_def_interfaces(def, generics) {
-                if let Type::TypeDef(interface_def, interface_generics) = &interface.ty {
+                if let Type::TypeDef(interface_def, interface_generics) = &interface {
                     kind = self.reader.type_def_async_kind(*interface_def);
                     if kind != AsyncKind::None {
                         async_generics = interface_generics.to_vec();

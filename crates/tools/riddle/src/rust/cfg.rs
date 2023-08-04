@@ -77,7 +77,7 @@ pub fn type_def_cfg_impl<'a>(reader: &'a Reader, def: TypeDef, generics: &[Type]
         .contains(TypeAttributes::WindowsRuntime)
     {
         for interface in reader.type_def_interfaces(def, generics) {
-            if let Type::TypeDef(def, generics) = interface.ty {
+            if let Type::TypeDef(def, generics) = interface {
                 combine(reader, def, &generics, &mut cfg);
             }
         }
