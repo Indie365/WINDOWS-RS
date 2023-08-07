@@ -106,33 +106,44 @@ fn write_interface(
 
     writer.tables.TypeDef.push(winmd::TypeDef {
         Extends: 0,
-        FieldList: 0,
-        Flags: flags.0,
+        FieldList: writer.tables.Field.len() as u32,
         MethodList: writer.tables.MethodDef.len() as u32,
+        Flags: flags.0,
         TypeName: writer.strings.insert(name),
         TypeNamespace: writer.strings.insert(namespace),
     });
 
-    for _method in &member.methods {
-        //let sig = syn_signature(namespace, &method.sig);
-        //let signature = writer.insert_method_sig(MethodCallAttributes::
+    for method in &member.methods {
+        let signature = syn_signature(namespace, &method.sig);
 
-        // writer.tables.MethodDef.push(winmd::MethodDef {
-        //     RVA: 0,
-        //     ImplFlags: 0,
-        //     Flags: 0,
-        //     Name: writer.strings.insert(&method.sig.ident.to_string()),
-        //     Signature: signature,
-        //     ParamList: writer.tables.Param.len() as u32,
-        // });
+        let params: Vec<winmd::Type> = signature
+            .params
+            .iter()
+            .map(|param| param.ty.clone())
+            .collect();
 
-        // for (sequence, param) in sig.params.iter().enumerate() {
-        //     writer.tables.Param.push(winmd::Param {
-        //         Flags: 0,
-        //         Sequence: (sequence + 1) as u16,
-        //         Name: writer.strings.insert(&param.name),
-        //     });
-        // }
+        let signature_blob = writer.insert_method_sig(
+            metadata::MethodCallAttributes(0),
+            &signature.return_type,
+            &params,
+        );
+
+        writer.tables.MethodDef.push(winmd::MethodDef {
+            RVA: 0,
+            ImplFlags: 0,
+            Flags: 0,
+            Name: writer.strings.insert(&method.sig.ident.to_string()),
+            Signature: signature_blob,
+            ParamList: writer.tables.Param.len() as u32,
+        });
+
+        for (sequence, param) in signature.params.iter().enumerate() {
+            writer.tables.Param.push(winmd::Param {
+                Flags: 0,
+                Sequence: (sequence + 1) as u16,
+                Name: writer.strings.insert(&param.name),
+            });
+        }
     }
 }
 
@@ -150,8 +161,8 @@ fn write_struct(writer: &mut winmd::Writer, namespace: &str, name: &str, member:
     writer.tables.TypeDef.push(winmd::TypeDef {
         Extends: extends,
         FieldList: writer.tables.Field.len() as u32,
+        MethodList: writer.tables.MethodDef.len() as u32,
         Flags: flags.0,
-        MethodList: 0,
         TypeName: writer.strings.insert(name),
         TypeNamespace: writer.strings.insert(namespace),
     });
@@ -171,7 +182,23 @@ fn write_struct(writer: &mut winmd::Writer, namespace: &str, name: &str, member:
 
 fn write_enum(_writer: &mut winmd::Writer, _namespace: &str, _name: &str, _member: &rdl::Enum) {}
 
-fn write_class(_writer: &mut winmd::Writer, _namespace: &str, _name: &str, _member: &rdl::Class) {}
+fn write_class(writer: &mut winmd::Writer, namespace: &str, name: &str, _member: &rdl::Class) {
+    let flags = metadata::TypeAttributes::Public
+        | metadata::TypeAttributes::Sealed
+        | metadata::TypeAttributes::WindowsRuntime;
+
+    let extends = writer.insert_type_ref("System", "Object");
+
+    writer.tables.TypeDef.push(winmd::TypeDef {
+        Extends: extends,
+        // Even though ECMA-335 says these can be "null", bugs in ILDASM necessitate this to avoid "misreading" the list terminators. 
+        FieldList: writer.tables.Field.len() as u32,
+        MethodList: writer.tables.MethodDef.len() as u32,
+        Flags: flags.0,
+        TypeName: writer.strings.insert(name),
+        TypeNamespace: writer.strings.insert(namespace),
+    });
+}
 
 fn syn_signature(namespace: &str, sig: &syn::Signature) -> winmd::Signature {
     let params = sig

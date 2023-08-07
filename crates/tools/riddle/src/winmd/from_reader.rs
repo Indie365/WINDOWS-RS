@@ -105,26 +105,6 @@ pub fn from_reader(
     crate::write_to_file(output, writer.into_stream()).map_err(|err| err.with_path(output))
 }
 
-// TODO: get rid of this signature conversion
-fn winmd_signature(reader: &metadata::Reader, sig: &metadata::Signature) -> winmd::Signature {
-    let params = sig
-        .params
-        .iter()
-        .map(|param| {
-            let name = reader.param_name(param.def).to_string();
-            let ty = winmd_type(reader, &param.ty);
-            winmd::SignatureParam { name, ty }
-        })
-        .collect();
-
-    let return_type = winmd_type(reader, &sig.return_type);
-    winmd::Signature {
-        params,
-        return_type,
-        call_flags: 0,
-    }
-}
-
 // TODO: keep the basic type conversion
 fn winmd_type(reader: &metadata::Reader, ty: &metadata::Type) -> winmd::Type {
     match ty {

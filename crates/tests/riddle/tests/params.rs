@@ -19,9 +19,9 @@ fn test() {
     assert_eq!(methods.len(), 14);
 
     assert_eq!(reader.method_def_name(methods[0]), "Nothing");
-    let (_, return_type, params) = reader.method_def_signature( methods[0], generics);
-    assert_eq!(return_type, Type::Void);
-    assert!(params.is_empty());
+    let sig = reader.method_def_signature( methods[0], generics);
+    assert_eq!(sig.return_type, Type::Void);
+    assert!(sig.params.is_empty());
 
     assert_eq!(reader.method_def_name(methods[1]), "Bool");
     assert_eq!(reader.method_def_name(methods[2]), "I8");
@@ -53,9 +53,9 @@ fn test() {
 }
 
 fn method(reader: &Reader, generics: &[Type], method: MethodDef, expected: Type) {
-    let (_, return_type, params) = reader.method_def_signature(method, generics);
-    assert_eq!(return_type, expected);
-    assert_eq!(params.len(), 2);
-    assert_eq!(params[0], expected);
-    assert_eq!(params[1], expected);
+    let sig = reader.method_def_signature(method, generics);
+    assert_eq!(sig.return_type, expected);
+    assert_eq!(sig.params.len(), 2);
+    assert_eq!(sig.params[0], expected);
+    assert_eq!(sig.params[1], expected);
 }
