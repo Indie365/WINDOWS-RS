@@ -126,6 +126,7 @@ pub struct Function {
 pub struct Interface {
     pub winrt: bool,
     pub name: String,
+    pub generics: Vec<String>,
     pub attributes: Vec<syn::Attribute>,
     pub extends: Vec<syn::TypePath>,
     pub methods: Vec<syn::TraitItemFn>,
@@ -280,6 +281,18 @@ impl Interface {
         input.parse::<interface>()?;
         let name = input.parse::<syn::Ident>()?.to_string();
 
+        let mut generics = Vec::new();
+
+        if input.peek(syn::Token![<]) {
+            input.parse::<syn::Token![<]>()?;
+            while input.peek(syn::Ident) {
+                generics.push(input.parse::<syn::Ident>()?.to_string());
+                _ = input.parse::<syn::Token![,]>();
+            }
+            
+            input.parse::<syn::Token![>]>()?;
+        }
+
         let mut extends = Vec::new();
 
         if input.peek(syn::Token![:]) {
@@ -299,6 +312,7 @@ impl Interface {
         Ok(Self {
             winrt,
             attributes,
+            generics,
             extends,
             name,
             methods,

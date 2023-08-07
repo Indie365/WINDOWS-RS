@@ -113,6 +113,22 @@ impl Writer {
         self.word("interface ");
         self.word(&member.name);
 
+        if !member.generics.is_empty() {
+            self.word("<");
+
+            let mut first = true;
+            for generic in &member.generics {
+                if first {
+                    first = false;
+                } else {
+                    self.word(", ");
+                }
+                self.word(generic);
+            }
+
+            self.word(">");
+        }
+
         if !member.extends.is_empty() {
             self.word(" : ");
 

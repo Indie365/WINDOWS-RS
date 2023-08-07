@@ -312,10 +312,22 @@ impl<'a> Writer<'a> {
             }
         });
 
+        let generics = self.generics(generics);
+
         quote! {
-            interface #name #implements {
+            interface #name #generics #implements {
                 #(#methods)*
             }
+        }
+    }
+
+    fn generics(&self, generics: &[metadata::Type]) -> TokenStream {
+        if generics.is_empty() {
+            quote!{}
+        } else {
+            let generics = generics.iter().map(|generic|self.ty(generic));
+
+            quote! { <#(#generics),*>}
         }
     }
 
