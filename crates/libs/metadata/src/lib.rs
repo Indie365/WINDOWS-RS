@@ -885,7 +885,7 @@ fn trim_tick(name: &str) -> &str {
     }
 }
 
-// TODO: this should be in riddle's Rust generator if at all - perhaps as convertible types rather than remapped types since there's already some precedent for that. 
+// TODO: this should be in riddle's Rust generator if at all - perhaps as convertible types rather than remapped types since there's already some precedent for that.
 pub const REMAP_TYPES: [(TypeName, TypeName); 2] = [(TypeName::D2D_MATRIX_3X2_F, TypeName::Matrix3x2), (TypeName::D3DMATRIX, TypeName::Matrix4x4)];
 
 // TODO: get rid of at least the second tuple if not the whole thing.

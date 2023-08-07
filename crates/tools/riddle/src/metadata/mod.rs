@@ -578,8 +578,7 @@ fn type_name<'a>(reader: &Reader<'a>, ty: &Type) -> &'a str {
     }
 }
 
-
-pub fn type_def_async_kind(reader:&Reader, row: TypeDef) -> AsyncKind {
+pub fn type_def_async_kind(reader: &Reader, row: TypeDef) -> AsyncKind {
     match reader.type_def_type_name(row) {
         TypeName::IAsyncAction => AsyncKind::Action,
         TypeName::IAsyncActionWithProgress => AsyncKind::ActionWithProgress,

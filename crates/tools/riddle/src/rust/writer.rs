@@ -624,7 +624,7 @@ impl<'a> Writer<'a> {
         _phantoms: &TokenStream,
         features: &TokenStream,
     ) -> TokenStream {
-        let mut kind = type_def_async_kind(self.reader,def);
+        let mut kind = type_def_async_kind(self.reader, def);
         let mut async_generics = generics.to_vec();
 
         if kind == AsyncKind::None {

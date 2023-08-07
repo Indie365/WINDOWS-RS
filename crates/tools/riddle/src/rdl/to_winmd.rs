@@ -191,7 +191,7 @@ fn write_class(writer: &mut winmd::Writer, namespace: &str, name: &str, _member:
 
     writer.tables.TypeDef.push(winmd::TypeDef {
         Extends: extends,
-        // Even though ECMA-335 says these can be "null", bugs in ILDASM necessitate this to avoid "misreading" the list terminators. 
+        // Even though ECMA-335 says these can be "null", bugs in ILDASM necessitate this to avoid "misreading" the list terminators.
         FieldList: writer.tables.Field.len() as u32,
         MethodList: writer.tables.MethodDef.len() as u32,
         Flags: flags.0,
