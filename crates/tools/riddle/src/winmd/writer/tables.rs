@@ -6,8 +6,7 @@ use metadata::imp::coded_index_size;
 
 #[derive(Default)]
 pub struct Tables {
-    // TODO: use BTreeSet for tables that have a primary key, unless they are naturally sorted. 
-
+    // TODO: use BTreeSet for tables that have a primary key, unless they are naturally sorted.
     pub Assembly: Vec<Assembly>,
     pub AssemblyRef: Vec<AssemblyRef>,
     pub ClassLayout: Vec<ClassLayout>,
@@ -219,8 +218,7 @@ impl Tables {
         let has_constant =
             coded_index_size(&[self.Field.len(), self.Param.len(), self.Property.len()]);
 
-            let type_or_method_def =
-            coded_index_size(&[self.TypeDef.len(), self.MethodDef.len()]);
+        let type_or_method_def = coded_index_size(&[self.TypeDef.len(), self.MethodDef.len()]);
 
         let valid_tables: u64 = 1 << 0 | // Module 
         1 << 0x01 | // TypeRef

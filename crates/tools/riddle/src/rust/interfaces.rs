@@ -30,8 +30,7 @@ fn gen_win_interface(writer: &Writer, def: TypeDef) -> TokenStream {
     let cfg = type_def_cfg(writer.reader, def, &[]);
     let doc = writer.cfg_doc(&cfg);
     let features = writer.cfg_features(&cfg);
-    let interfaces = type_interfaces(writer
-        .reader,&Type::TypeDef(def, generics.to_vec()));
+    let interfaces = type_interfaces(writer.reader, &Type::TypeDef(def, generics.to_vec()));
     let vtables = writer.reader.type_def_vtables(def);
     let has_unknown_base = matches!(vtables.first(), Some(Type::IUnknown));
 

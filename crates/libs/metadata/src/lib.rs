@@ -443,13 +443,7 @@ impl<'a> Reader<'a> {
     }
 
     pub fn type_def_default_interface(&self, row: TypeDef) -> Option<Type> {
-        self.type_def_interface_impls(row).find_map(move |row| {
-            if self.has_attribute(row, "DefaultAttribute") {
-                Some(self.interface_impl_type(row, &[]))
-            } else {
-                None
-            }
-        })
+        self.type_def_interface_impls(row).find_map(move |row| if self.has_attribute(row, "DefaultAttribute") { Some(self.interface_impl_type(row, &[])) } else { None })
     }
     pub fn type_def_has_default_interface(&self, row: TypeDef) -> bool {
         self.type_def_interface_impls(row).any(|imp| self.has_attribute(imp, "DefaultAttribute"))

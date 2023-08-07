@@ -231,7 +231,7 @@ fn type_collect_standalone(reader: &Reader, ty: &Type, set: &mut BTreeSet<Type>)
             .iter()
             .for_each(|param| type_collect_standalone(reader, &param.ty, set));
     }
-    for interface in type_interfaces(reader,&ty) {
+    for interface in type_interfaces(reader, &ty) {
         type_collect_standalone(reader, &interface.ty, set);
     }
     if reader.type_def_kind(def) == TypeKind::Struct

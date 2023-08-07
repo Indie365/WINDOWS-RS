@@ -92,7 +92,7 @@ impl Writer {
 
         if !member.extends.is_empty() {
             self.word(" : ");
-            
+
             let mut first = true;
             for path in &member.extends {
                 if first {
@@ -103,7 +103,7 @@ impl Writer {
                 self.type_path(path);
             }
         }
-        
+
         self.word(";");
         self.newline();
     }
@@ -115,7 +115,7 @@ impl Writer {
 
         if !member.extends.is_empty() {
             self.word(" : ");
-            
+
             let mut first = true;
             for path in &member.extends {
                 if first {
@@ -126,7 +126,7 @@ impl Writer {
                 self.type_path(path);
             }
         }
-        
+
         self.word(" {");
         self.newline();
         self.indent += 1;

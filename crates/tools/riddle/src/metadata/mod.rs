@@ -489,7 +489,6 @@ pub fn type_def_has_callback(reader: &Reader, row: TypeDef) -> bool {
     }
 }
 
-
 pub fn type_interfaces(reader: &Reader, ty: &Type) -> Vec<Interface> {
     // TODO: collect into btree map and then return collected vec
     // This will both sort the results and should make finding dupes faster
@@ -497,8 +496,12 @@ pub fn type_interfaces(reader: &Reader, ty: &Type) -> Vec<Interface> {
         if let Type::TypeDef(row, generics) = parent {
             for imp in reader.type_def_interface_impls(*row) {
                 let mut child = Interface {
-                 ty : reader.interface_impl_type(imp, generics),
-                 kind: if reader.has_attribute(imp, "DefaultAttribute") { InterfaceKind::Default } else { InterfaceKind::None },
+                    ty: reader.interface_impl_type(imp, generics),
+                    kind: if reader.has_attribute(imp, "DefaultAttribute") {
+                        InterfaceKind::Default
+                    } else {
+                        InterfaceKind::None
+                    },
                 };
 
                 child.kind = if !is_base && child.kind == InterfaceKind::Default {
@@ -538,8 +541,14 @@ pub fn type_interfaces(reader: &Reader, ty: &Type) -> Vec<Interface> {
                     "StaticAttribute" | "ActivatableAttribute" => {
                         for (_, arg) in reader.attribute_args(attribute) {
                             if let Value::TypeName(type_name) = arg {
-                                let def = reader.get_type_def(TypeName::parse(&type_name)).next().expect("Type not found");
-                                result.push(Interface { ty: Type::TypeDef(def, Vec::new()), kind: InterfaceKind::Static });
+                                let def = reader
+                                    .get_type_def(TypeName::parse(&type_name))
+                                    .next()
+                                    .expect("Type not found");
+                                result.push(Interface {
+                                    ty: Type::TypeDef(def, Vec::new()),
+                                    kind: InterfaceKind::Static,
+                                });
                                 break;
                             }
                         }
@@ -553,7 +562,7 @@ pub fn type_interfaces(reader: &Reader, ty: &Type) -> Vec<Interface> {
     result
 }
 
-fn type_name<'a> (reader: &Reader<'a>, ty: &Type) -> &'a str {
+fn type_name<'a>(reader: &Reader<'a>, ty: &Type) -> &'a str {
     match ty {
         Type::TypeDef(row, _) => reader.type_def_name(*row),
         _ => "",
