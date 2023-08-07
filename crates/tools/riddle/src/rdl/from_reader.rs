@@ -323,9 +323,9 @@ impl<'a> Writer<'a> {
 
     fn generics(&self, generics: &[metadata::Type]) -> TokenStream {
         if generics.is_empty() {
-            quote!{}
+            quote! {}
         } else {
-            let generics = generics.iter().map(|generic|self.ty(generic));
+            let generics = generics.iter().map(|generic| self.ty(generic));
 
             quote! { <#(#generics),*>}
         }

@@ -289,7 +289,7 @@ impl Interface {
                 generics.push(input.parse::<syn::Ident>()?.to_string());
                 _ = input.parse::<syn::Token![,]>();
             }
-            
+
             input.parse::<syn::Token![>]>()?;
         }
 

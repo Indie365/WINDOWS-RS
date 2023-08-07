@@ -1,6 +1,6 @@
 use super::*;
-use crate::{rdl,  Result};
 use crate::winmd::{self, writer};
+use crate::{rdl, Result};
 
 // TODO: store span in winmd so that errors resolving type references can be traced back to file/line/column
 use std::collections::HashMap;
@@ -120,7 +120,7 @@ fn write_interface(
             Flags: 0,
             Owner: writer::TypeOrMethodDef::TypeDef(writer.tables.TypeDef.len() as u32 - 1)
                 .encode(),
-            Name: writer.strings.insert(&generic),
+            Name: writer.strings.insert(generic),
         });
     }
 
@@ -139,10 +139,17 @@ fn write_interface(
             &params,
         );
 
+        let flags = metadata::MethodAttributes::Abstract
+            | metadata::MethodAttributes::HideBySig
+            | metadata::MethodAttributes::HideBySig
+            | metadata::MethodAttributes::NewSlot
+            | metadata::MethodAttributes::Public
+            | metadata::MethodAttributes::Virtual;
+
         writer.tables.MethodDef.push(winmd::MethodDef {
             RVA: 0,
             ImplFlags: 0,
-            Flags: 0,
+            Flags: flags.0,
             Name: writer.strings.insert(&method.sig.ident.to_string()),
             Signature: signature_blob,
             ParamList: writer.tables.Param.len() as u32,
@@ -211,7 +218,7 @@ fn write_class(writer: &mut winmd::Writer, namespace: &str, name: &str, _member:
     });
 }
 
-fn syn_signature(namespace: &str, generics:&[String], sig: &syn::Signature) -> winmd::Signature {
+fn syn_signature(namespace: &str, generics: &[String], sig: &syn::Signature) -> winmd::Signature {
     let params = sig
         .inputs
         .iter()
@@ -273,9 +280,9 @@ fn syn_type_ptr(namespace: &str, ptr: &syn::TypePtr) -> winmd::Type {
     }
 }
 
-fn syn_type_path(namespace: &str, generics:&[String],ty: &syn::TypePath) -> winmd::Type {
+fn syn_type_path(namespace: &str, generics: &[String], ty: &syn::TypePath) -> winmd::Type {
     if ty.qself.is_none() {
-        return syn_path(namespace,generics, &ty.path);
+        return syn_path(namespace, generics, &ty.path);
     }
 
     unimplemented!()
@@ -286,7 +293,7 @@ fn syn_path(namespace: &str, generics: &[String], path: &syn::Path) -> winmd::Ty
         if path.segments.len() == 1 {
             let name = segment.ident.to_string();
 
-            if let Some(number) = generics.iter().position(|generic|generic == &name) {
+            if let Some(number) = generics.iter().position(|generic| generic == &name) {
                 return winmd::Type::GenericParam(number as u16);
             }
 
