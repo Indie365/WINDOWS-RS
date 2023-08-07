@@ -51,7 +51,7 @@ pub fn from_reader(
                 Number: reader.generic_param_number(generic),
                 Flags: 0,
                 Owner: writer::TypeOrMethodDef::TypeDef(writer.tables.TypeDef.len() as u32 - 1)
-                    .encode() as u32,
+                    .encode(),
                 Name: writer.strings.insert(reader.generic_param_name(generic)),
             });
         }
