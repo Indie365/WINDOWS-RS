@@ -85,10 +85,48 @@ impl Writer {
         }
     }
 
+    fn rdl_class(&mut self, member: &rdl::Class) {
+        self.attrs(&member.attributes);
+        self.word("class ");
+        self.word(&member.name);
+
+        if !member.extends.is_empty() {
+            self.word(" : ");
+            
+            let mut first = true;
+            for path in &member.extends {
+                if first {
+                    first = false;
+                } else {
+                    self.word(", ");
+                }
+                self.type_path(path);
+            }
+        }
+        
+        self.word(";");
+        self.newline();
+    }
+
     fn rdl_interface(&mut self, member: &rdl::Interface) {
         self.attrs(&member.attributes);
         self.word("interface ");
         self.word(&member.name);
+
+        if !member.extends.is_empty() {
+            self.word(" : ");
+            
+            let mut first = true;
+            for path in &member.extends {
+                if first {
+                    first = false;
+                } else {
+                    self.word(", ");
+                }
+                self.type_path(path);
+            }
+        }
+        
         self.word(" {");
         self.newline();
         self.indent += 1;
@@ -204,8 +242,6 @@ impl Writer {
         self.newline();
         self.word("}");
     }
-
-    fn rdl_class(&mut self, _member: &rdl::Class) {}
 
     fn trait_item_fn(&mut self, method: &syn::TraitItemFn) {
         self.attrs(&method.attrs);
