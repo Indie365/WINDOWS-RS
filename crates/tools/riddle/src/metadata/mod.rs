@@ -73,6 +73,15 @@ pub struct SignatureParam {
     pub kind: SignatureParamKind,
 }
 
+#[derive(PartialEq, Eq, Debug)]
+pub enum AsyncKind {
+    None,
+    Action,
+    ActionWithProgress,
+    Operation,
+    OperationWithProgress,
+}
+
 pub fn type_def_invoke_method(reader: &Reader, row: TypeDef) -> MethodDef {
     reader
         .type_def_methods(row)
@@ -566,5 +575,16 @@ fn type_name<'a>(reader: &Reader<'a>, ty: &Type) -> &'a str {
     match ty {
         Type::TypeDef(row, _) => reader.type_def_name(*row),
         _ => "",
+    }
+}
+
+
+pub fn type_def_async_kind(reader:&Reader, row: TypeDef) -> AsyncKind {
+    match reader.type_def_type_name(row) {
+        TypeName::IAsyncAction => AsyncKind::Action,
+        TypeName::IAsyncActionWithProgress => AsyncKind::ActionWithProgress,
+        TypeName::IAsyncOperation => AsyncKind::Operation,
+        TypeName::IAsyncOperationWithProgress => AsyncKind::OperationWithProgress,
+        _ => AsyncKind::None,
     }
 }

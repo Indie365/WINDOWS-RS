@@ -23,17 +23,7 @@ pub use row::*;
 use std::collections::*;
 pub use type_name::TypeName;
 
-// TODO: move to riddle/rust
-#[derive(PartialEq, Eq, Debug)]
-pub enum AsyncKind {
-    None,
-    Action,
-    ActionWithProgress,
-    Operation,
-    OperationWithProgress,
-}
-
-// TODO: move to riddle/rust
+// TODO: move to riddle
 #[derive(Copy, Clone, PartialEq, Eq, Debug, PartialOrd, Ord)]
 pub enum TypeKind {
     Interface,
@@ -581,15 +571,6 @@ impl<'a> Reader<'a> {
         }
     }
 
-    pub fn type_def_async_kind(&self, row: TypeDef) -> AsyncKind {
-        match self.type_def_type_name(row) {
-            TypeName::IAsyncAction => AsyncKind::Action,
-            TypeName::IAsyncActionWithProgress => AsyncKind::ActionWithProgress,
-            TypeName::IAsyncOperation => AsyncKind::Operation,
-            TypeName::IAsyncOperationWithProgress => AsyncKind::OperationWithProgress,
-            _ => AsyncKind::None,
-        }
-    }
     pub fn type_def_signature(&self, row: TypeDef, generics: &[Type]) -> String {
         match self.type_def_kind(row) {
             TypeKind::Interface => self.type_def_interface_signature(row, generics),
@@ -904,7 +885,7 @@ fn trim_tick(name: &str) -> &str {
     }
 }
 
-// TODO: this should be in riddle's Rust generator if at all.
+// TODO: this should be in riddle's Rust generator if at all - perhaps as convertible types rather than remapped types since there's already some precedent for that. 
 pub const REMAP_TYPES: [(TypeName, TypeName); 2] = [(TypeName::D2D_MATRIX_3X2_F, TypeName::Matrix3x2), (TypeName::D3DMATRIX, TypeName::Matrix4x4)];
 
 // TODO: get rid of at least the second tuple if not the whole thing.

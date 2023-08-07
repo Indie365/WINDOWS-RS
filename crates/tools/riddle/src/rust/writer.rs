@@ -624,13 +624,13 @@ impl<'a> Writer<'a> {
         _phantoms: &TokenStream,
         features: &TokenStream,
     ) -> TokenStream {
-        let mut kind = self.reader.type_def_async_kind(def);
+        let mut kind = type_def_async_kind(self.reader,def);
         let mut async_generics = generics.to_vec();
 
         if kind == AsyncKind::None {
             for interface in self.reader.type_def_interfaces(def, generics) {
                 if let Type::TypeDef(interface_def, interface_generics) = &interface {
-                    kind = self.reader.type_def_async_kind(*interface_def);
+                    kind = type_def_async_kind(self.reader, *interface_def);
                     if kind != AsyncKind::None {
                         async_generics = interface_generics.to_vec();
                         break;
