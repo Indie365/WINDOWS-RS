@@ -1,13 +1,13 @@
 #![allow(dead_code, clippy::upper_case_acronyms)]
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub struct TypeName {
     pub namespace: String,
     pub name: String,
     pub generics: Vec<Type>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub enum Type {
     Void,
     Bool,

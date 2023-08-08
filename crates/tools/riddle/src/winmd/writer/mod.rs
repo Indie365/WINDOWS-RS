@@ -21,7 +21,8 @@ pub struct Writer {
     pub strings: Strings,
     pub tables: Tables,
     pub scopes: HashMap<String, u32>,
-    pub references: HashMap<String, HashMap<String, u32>>,
+    pub type_refs: HashMap<String, HashMap<String, u32>>,
+    pub type_specs: HashMap<Type, u32>,
 }
 
 impl Writer {
@@ -31,7 +32,8 @@ impl Writer {
             strings: Default::default(),
             tables: Default::default(),
             scopes: Default::default(),
-            references: Default::default(),
+            type_refs: Default::default(),
+            type_specs: Default::default(),
         };
 
         writer.tables.TypeDef.push(TypeDef {
@@ -95,7 +97,7 @@ impl Writer {
     }
 
     pub fn insert_field_sig(&mut self, ty: &Type) -> u32 {
-        // TODO: can either cache in Writer, like we do for scopes and references, or regenerate each time.
+        // TODO: can either cache in Writer, like we do for scopes and type_refs, or regenerate each time.
         // Profile once we can stress test this with field/method signatures.
 
         let mut blob = vec![0x6]; // FIELD
@@ -122,7 +124,7 @@ impl Writer {
             self.scopes.insert(namespace.to_string(), scope);
             scope
         } else {
-            // TODO: may need to capture the original assembly info for external references.
+            // TODO: may need to capture the original assembly info for external type_refs.
             let scope = ResolutionScope::AssemblyRef(self.tables.AssemblyRef.push2(AssemblyRef {
                 Name: self.strings.insert(namespace),
                 MajorVersion: 0xFF,
@@ -139,7 +141,7 @@ impl Writer {
     }
 
     pub fn insert_type_ref(&mut self, namespace: &str, name: &str) -> u32 {
-        if let Some(key) = self.references.get(namespace) {
+        if let Some(key) = self.type_refs.get(namespace) {
             if let Some(reference) = key.get(name) {
                 return *reference;
             }
@@ -153,12 +155,28 @@ impl Writer {
             ResolutionScope: scope,
         }))
         .encode();
-        self.references
+        self.type_refs
             .entry(namespace.to_string())
             .or_default()
             .insert(name.to_string(), reference);
         reference
     }
+
+    pub fn insert_type_spec(&mut self, ty: Type) -> u32 {
+        if let Some(key) = self.type_specs.get(&ty) {
+            return *key;
+        }
+
+        let mut blob = vec![];
+        self.type_blob(&ty, &mut blob);
+        let signature = self.blobs.insert(&blob);
+
+        let reference =TypeDefOrRef::TypeSpec(self.tables.TypeSpec.push2(writer::TypeSpec {
+                Signature: signature
+             })).encode();
+    
+        self.type_specs.insert(ty, reference);
+        reference    }
 
     fn type_blob(&mut self, ty: &Type, blob: &mut Vec<u8>) {
         match ty {

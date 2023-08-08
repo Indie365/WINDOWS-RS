@@ -289,7 +289,7 @@ impl Tables {
             buffer.write_u32(x.TypeNamespace);
         }
 
-        for x in self.TypeDef {
+        for x in &self.TypeDef {
             buffer.write_u32(x.Flags);
             buffer.write_u32(x.TypeName);
             buffer.write_u32(x.TypeNamespace);
@@ -317,6 +317,11 @@ impl Tables {
             buffer.write_u16(x.Flags);
             buffer.write_u16(x.Sequence);
             buffer.write_u32(x.Name);
+        }
+
+        for x in self.InterfaceImpl {
+            buffer.write_index(x.Class, self.TypeDef.len());
+            buffer.write_code(x.Interface, type_def_or_ref);
         }
 
         for x in self.Constant {
@@ -347,6 +352,10 @@ impl Tables {
             buffer.write_u32(x.Name);
             buffer.write_u32(x.Culture);
             buffer.write_u32(x.HashValue);
+        }
+
+        for x in self.TypeSpec {
+            buffer.write_u32(x.Signature);
         }
 
         for x in self.GenericParam {
