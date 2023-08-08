@@ -389,6 +389,29 @@ impl Writer {
 
     pub fn path_segment(&mut self, segment: &syn::PathSegment) {
         self.ident(&segment.ident);
+
+        if let syn::PathArguments::AngleBracketed(args) = &segment.arguments {
+            self.word("<");
+
+            let mut first = true;
+            for arg in &args.args {
+                if first {
+                    first = false;
+                } else {
+                    self.word(", ");
+                }
+                self.generic_argument(arg);
+            }
+
+            self.word(">");
+        }
+    }
+
+    fn generic_argument(&mut self, arg: &syn::GenericArgument) {
+        match arg {
+            syn::GenericArgument::Type(ty) => self.ty(ty),
+            rest => unimplemented!("{rest:?}"),
+        }
     }
 
     fn item_use(&mut self, item: &syn::ItemUse) {
