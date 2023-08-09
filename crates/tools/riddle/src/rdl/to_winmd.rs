@@ -365,7 +365,7 @@ fn syn_path(namespace: &str, generics: &[String], path: &syn::Path) -> winmd::Ty
             }
             builder.pop();
         } else {
-                    builder.push(segment);
+            builder.push(segment);
         }
     }
 
