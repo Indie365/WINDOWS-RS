@@ -124,6 +124,23 @@ fn write_interface(
         });
     }
 
+    for type_path in &member.extends {
+        let ty = syn_type_path(namespace, &member.generics, type_path);
+
+        let reference = match &ty {
+            winmd::Type::TypeRef(type_name) if type_name.generics.is_empty() => {
+                writer.insert_type_ref(&type_name.namespace, &type_name.name)
+            }
+            winmd::Type::TypeRef(_) => writer.insert_type_spec(ty),
+            rest => unimplemented!("{rest:?}"),
+        };
+
+        writer.tables.InterfaceImpl.push(writer::InterfaceImpl {
+            Class: writer.tables.TypeDef.len() as u32 - 1,
+            Interface: reference,
+        });
+    }
+
     for method in &member.methods {
         let signature = syn_signature(namespace, &member.generics, &method.sig);
 

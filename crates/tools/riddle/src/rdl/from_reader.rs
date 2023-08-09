@@ -400,6 +400,14 @@ impl<'a> Writer<'a> {
                     quote! { #namespace #name<#(#generics,)*> }
                 }
             }
+
+            metadata::Type::TypeRef(code) => {
+                let type_name = self.reader.type_def_or_ref(*code);
+                let namespace = self.namespace(type_name.namespace);
+                let name = to_ident(type_name.name);
+                quote! { #namespace #name }
+            }
+
             metadata::Type::GenericParam(generic) => {
                 self.reader.generic_param_name(*generic).into()
             }
