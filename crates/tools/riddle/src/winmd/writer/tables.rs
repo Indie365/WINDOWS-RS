@@ -330,6 +330,10 @@ impl Tables {
             buffer.write_u32(x.Value);
         }
 
+        for x in self.TypeSpec {
+            buffer.write_u32(x.Signature);
+        }
+
         for x in self.Assembly {
             buffer.write_u32(x.HashAlgId);
             buffer.write_u16(x.MajorVersion);
@@ -352,10 +356,6 @@ impl Tables {
             buffer.write_u32(x.Name);
             buffer.write_u32(x.Culture);
             buffer.write_u32(x.HashValue);
-        }
-
-        for x in self.TypeSpec {
-            buffer.write_u32(x.Signature);
         }
 
         for x in self.GenericParam {

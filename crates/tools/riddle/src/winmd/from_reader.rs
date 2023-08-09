@@ -56,17 +56,15 @@ pub fn from_reader(
             });
         }
 
-         for imp in reader.type_def_interface_impls(def) {
+        for imp in reader.type_def_interface_impls(def) {
             let ty = reader.interface_impl_type(imp, generics);
             let ty = winmd_type(reader, &ty);
-             
+
             let reference = match &ty {
                 winmd::Type::TypeRef(type_name) if type_name.generics.is_empty() => {
                     writer.insert_type_ref(&type_name.namespace, &type_name.name)
                 }
-                winmd::Type::TypeRef(_) => {
-                    writer.insert_type_spec(ty)
-                }
+                winmd::Type::TypeRef(_) => writer.insert_type_spec(ty),
                 rest => unimplemented!("{rest:?}"),
             };
 
@@ -74,7 +72,7 @@ pub fn from_reader(
                 Class: writer.tables.TypeDef.len() as u32 - 1,
                 Interface: reference,
             });
-         }
+        }
 
         // TODO: if the class is "Apis" then should we sort the fields (constants) and methods (functions) for stability
 

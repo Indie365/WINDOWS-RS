@@ -21,6 +21,7 @@ pub struct Writer {
     pub strings: Strings,
     pub tables: Tables,
     pub scopes: HashMap<String, u32>,
+    // TODO: is this faster than jsut using a single HashMap with a (String,String) key?
     pub type_refs: HashMap<String, HashMap<String, u32>>,
     pub type_specs: HashMap<Type, u32>,
 }
@@ -171,12 +172,14 @@ impl Writer {
         self.type_blob(&ty, &mut blob);
         let signature = self.blobs.insert(&blob);
 
-        let reference =TypeDefOrRef::TypeSpec(self.tables.TypeSpec.push2(writer::TypeSpec {
-                Signature: signature
-             })).encode();
-    
+        let reference = TypeDefOrRef::TypeSpec(self.tables.TypeSpec.push2(TypeSpec {
+            Signature: signature,
+        }))
+        .encode();
+
         self.type_specs.insert(ty, reference);
-        reference    }
+        reference
+    }
 
     fn type_blob(&mut self, ty: &Type, blob: &mut Vec<u8>) {
         match ty {
