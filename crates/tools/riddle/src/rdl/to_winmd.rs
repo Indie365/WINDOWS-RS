@@ -350,16 +350,26 @@ fn syn_path(namespace: &str, generics: &[String], path: &syn::Path) -> winmd::Ty
     }
 
     // TODO: Here we assume that paths are absolute since there's no way to disambiguate between nested and absolute paths
-    // The canonicalize function preprocesses the IDL to make this work
+    // The canonicalize function (should maybe) preprocesses the IDL to make this work
 
     let mut builder = vec![];
 
     for segment in &path.segments {
         let segment = segment.ident.to_string();
-        builder.push(segment);
+
+        if segment == "super" {
+            if builder.is_empty() {
+                for segment in namespace.split('.') {
+                    builder.push(segment.to_string());
+                }
+            }
+            builder.pop();
+        } else {
+                    builder.push(segment);
+        }
     }
 
-    // Unwrapping as there are more one segments
+    // Unwrapping is fine as there are more than one segments.
     let (name, namespace) = builder.split_last().unwrap();
     let namespace = namespace.join(".");
 
