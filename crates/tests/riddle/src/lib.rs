@@ -5,6 +5,7 @@ mod params;
 mod r#struct;
 mod win32_struct;
 mod winrt_struct;
+mod generic_interfaces;
 
 use std::process::Command;
 
