@@ -1,3 +1,4 @@
+mod generic_interfaces;
 mod module_attributes;
 mod nested_module;
 mod nested_struct;
@@ -5,7 +6,6 @@ mod params;
 mod r#struct;
 mod win32_struct;
 mod winrt_struct;
-mod generic_interfaces;
 
 use std::process::Command;
 

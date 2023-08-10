@@ -69,7 +69,7 @@ fn combine_libraries(
         }
 
         if flags.contains(metadata::PInvokeAttributes::CallConvPlatformapi) {
-            let params = reader.method_def_size( method);
+            let params = reader.method_def_size(method);
             libraries
                 .entry(library)
                 .or_default()

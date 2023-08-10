@@ -433,36 +433,36 @@ impl<'a> Writer<'a> {
         if namespace.is_empty() || self.namespace == namespace {
             quote! {}
         } else {
-            // TODO: problem with making relative paths here is that we don't have the context to disambiguate 
+            // TODO: problem with making relative paths here is that we don't have the context to disambiguate
 
-                // let mut relative = self.namespace.split('.').peekable();
-                // let mut namespace = namespace.split('.').peekable();
-                // let mut related = false;
+            // let mut relative = self.namespace.split('.').peekable();
+            // let mut namespace = namespace.split('.').peekable();
+            // let mut related = false;
 
-                // while relative.peek() == namespace.peek() {
-                //     related = true;
+            // while relative.peek() == namespace.peek() {
+            //     related = true;
 
-                //     if relative.next().is_none() {
-                //         break;
-                //     }
+            //     if relative.next().is_none() {
+            //         break;
+            //     }
 
-                //     namespace.next();
-                // }
+            //     namespace.next();
+            // }
 
-                // let mut tokens = TokenStream::new();
+            // let mut tokens = TokenStream::new();
 
-                // if related {
-                //     for _ in 0..relative.count() {
-                //         tokens.push_str("super::");
-                //     }
-                // }
+            // if related {
+            //     for _ in 0..relative.count() {
+            //         tokens.push_str("super::");
+            //     }
+            // }
 
-                // for namespace in namespace {
-                //     tokens.push_str(namespace);
-                //     tokens.push_str("::");
-                // }
+            // for namespace in namespace {
+            //     tokens.push_str(namespace);
+            //     tokens.push_str("::");
+            // }
 
-                // tokens
+            // tokens
 
             // TODO: so instead we just gen it out in full
 

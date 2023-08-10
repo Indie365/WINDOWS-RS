@@ -19,7 +19,7 @@ fn test() {
     assert_eq!(methods.len(), 14);
 
     assert_eq!(reader.method_def_name(methods[0]), "Nothing");
-    let sig = reader.method_def_signature( methods[0], generics);
+    let sig = reader.method_def_signature(methods[0], generics);
     assert_eq!(sig.return_type, Type::Void);
     assert!(sig.params.is_empty());
 

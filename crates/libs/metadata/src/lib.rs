@@ -797,7 +797,7 @@ impl<'a> Reader<'a> {
                 blob.read_usize(); // ELEMENT_TYPE_VALUETYPE or ELEMENT_TYPE_CLASS
 
                 let type_name = self.type_def_or_ref(TypeDefOrRef::decode(blob.file, blob.read_usize()));
-                let def = self.get_type_def(type_name).next().unwrap_or_else(||panic!("Type not found: {}", type_name));
+                let def = self.get_type_def(type_name).next().unwrap_or_else(|| panic!("Type not found: {}", type_name));
                 let mut args = Vec::with_capacity(blob.read_usize());
 
                 for _ in 0..args.capacity() {

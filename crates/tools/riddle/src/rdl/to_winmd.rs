@@ -367,14 +367,20 @@ fn syn_path(namespace: &str, generics: &[String], path: &syn::Path) -> winmd::Ty
 
     // Unwrapping is fine as there should always be at least one segment.
     let (name, type_namespace) = builder.split_last().unwrap();
-    let type_namespace = if type_namespace.is_empty() { namespace.to_string() } else { type_namespace.join(".") };
+    let type_namespace = if type_namespace.is_empty() {
+        namespace.to_string()
+    } else {
+        type_namespace.join(".")
+    };
     let mut type_generics = vec![];
 
     if let Some(segment) = path.segments.last() {
         if let syn::PathArguments::AngleBracketed(args) = &segment.arguments {
             for arg in &args.args {
                 match arg {
-                    syn::GenericArgument::Type(ty) => type_generics.push(syn_type(namespace, generics, &ty)),
+                    syn::GenericArgument::Type(ty) => {
+                        type_generics.push(syn_type(namespace, generics, &ty))
+                    }
                     rest => unimplemented!("{rest:?}"),
                 }
             }
