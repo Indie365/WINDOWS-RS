@@ -306,47 +306,41 @@ fn syn_type_path(namespace: &str, generics: &[String], ty: &syn::TypePath) -> wi
 }
 
 fn syn_path(namespace: &str, generics: &[String], path: &syn::Path) -> winmd::Type {
-    // TODO: always 1+ segments?
-
     if let Some(segment) = path.segments.first() {
-        if path.segments.len() == 1 {
+        if path.segments.len() == 1 && segment.arguments.is_empty() {
             let name = segment.ident.to_string();
 
             if let Some(number) = generics.iter().position(|generic| generic == &name) {
                 return winmd::Type::GenericParam(number as u16);
             }
 
-            return match name.as_str() {
-                "void" => winmd::Type::Void,
-                "bool" => winmd::Type::Bool,
-                "char" => winmd::Type::Char,
-                "i8" => winmd::Type::I8,
-                "u8" => winmd::Type::U8,
-                "i16" => winmd::Type::I16,
-                "u16" => winmd::Type::U16,
-                "i32" => winmd::Type::I32,
-                "u32" => winmd::Type::U32,
-                "i64" => winmd::Type::I64,
-                "u64" => winmd::Type::U64,
-                "f32" => winmd::Type::F32,
-                "f64" => winmd::Type::F64,
-                "isize" => winmd::Type::ISize,
-                "usize" => winmd::Type::USize,
-                "HSTRING" => winmd::Type::String,
-                "GUID" => winmd::Type::GUID,
-                "IUnknown" => winmd::Type::IUnknown,
-                "IInspectable" => winmd::Type::IInspectable,
-                "HRESULT" => winmd::Type::HRESULT,
-                "PSTR" => winmd::Type::PSTR,
-                "PWSTR" => winmd::Type::PWSTR,
-                "PCSTR" => winmd::Type::PCSTR,
-                "PCWSTR" => winmd::Type::PCWSTR,
-                "BSTR" => winmd::Type::BSTR,
-                _ => winmd::Type::TypeRef(winmd::TypeName {
-                    namespace: namespace.to_string(),
-                    name,
-                    generics: vec![],
-                }),
+            match name.as_str() {
+                "void" => return winmd::Type::Void,
+                "bool" => return winmd::Type::Bool,
+                "char" => return winmd::Type::Char,
+                "i8" => return winmd::Type::I8,
+                "u8" => return winmd::Type::U8,
+                "i16" => return winmd::Type::I16,
+                "u16" => return winmd::Type::U16,
+                "i32" => return winmd::Type::I32,
+                "u32" => return winmd::Type::U32,
+                "i64" => return winmd::Type::I64,
+                "u64" => return winmd::Type::U64,
+                "f32" => return winmd::Type::F32,
+                "f64" => return winmd::Type::F64,
+                "isize" => return winmd::Type::ISize,
+                "usize" => return winmd::Type::USize,
+                "HSTRING" => return winmd::Type::String,
+                "GUID" => return winmd::Type::GUID,
+                "IUnknown" => return winmd::Type::IUnknown,
+                "IInspectable" => return winmd::Type::IInspectable,
+                "HRESULT" => return winmd::Type::HRESULT,
+                "PSTR" => return winmd::Type::PSTR,
+                "PWSTR" => return winmd::Type::PWSTR,
+                "PCSTR" => return winmd::Type::PCSTR,
+                "PCWSTR" => return winmd::Type::PCWSTR,
+                "BSTR" => return winmd::Type::BSTR,
+                _ => {}
             };
         }
     }
@@ -371,9 +365,9 @@ fn syn_path(namespace: &str, generics: &[String], path: &syn::Path) -> winmd::Ty
         }
     }
 
-    // Unwrapping is fine as there are more than one segments.
+    // Unwrapping is fine as there should always be at least one segment.
     let (name, type_namespace) = builder.split_last().unwrap();
-    let type_namespace = type_namespace.join(".");
+    let type_namespace = if type_namespace.is_empty() { namespace.to_string() } else { type_namespace.join(".") };
     let mut type_generics = vec![];
 
     if let Some(segment) = path.segments.last() {
