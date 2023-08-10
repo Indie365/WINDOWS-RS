@@ -306,6 +306,8 @@ fn syn_type_path(namespace: &str, generics: &[String], ty: &syn::TypePath) -> wi
 }
 
 fn syn_path(namespace: &str, generics: &[String], path: &syn::Path) -> winmd::Type {
+    // TODO: always 1+ segments?
+
     if let Some(segment) = path.segments.first() {
         if path.segments.len() == 1 {
             let name = segment.ident.to_string();
@@ -370,12 +372,24 @@ fn syn_path(namespace: &str, generics: &[String], path: &syn::Path) -> winmd::Ty
     }
 
     // Unwrapping is fine as there are more than one segments.
-    let (name, namespace) = builder.split_last().unwrap();
-    let namespace = namespace.join(".");
+    let (name, type_namespace) = builder.split_last().unwrap();
+    let type_namespace = type_namespace.join(".");
+    let mut type_generics = vec![];
+
+    if let Some(segment) = path.segments.last() {
+        if let syn::PathArguments::AngleBracketed(args) = &segment.arguments {
+            for arg in &args.args {
+                match arg {
+                    syn::GenericArgument::Type(ty) => type_generics.push(syn_type(namespace, generics, &ty)),
+                    rest => unimplemented!("{rest:?}"),
+                }
+            }
+        }
+    }
 
     winmd::Type::TypeRef(winmd::TypeName {
-        namespace,
+        namespace: type_namespace,
         name: name.to_string(),
-        generics: vec![],
+        generics: type_generics,
     })
 }

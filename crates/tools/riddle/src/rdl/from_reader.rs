@@ -433,29 +433,42 @@ impl<'a> Writer<'a> {
         if namespace.is_empty() || self.namespace == namespace {
             quote! {}
         } else {
-            let mut relative = self.namespace.split('.').peekable();
-            let mut namespace = namespace.split('.').peekable();
-            let mut related = false;
+            // TODO: problem with making relative paths here is that we don't have the context to disambiguate 
 
-            while relative.peek() == namespace.peek() {
-                related = true;
+                // let mut relative = self.namespace.split('.').peekable();
+                // let mut namespace = namespace.split('.').peekable();
+                // let mut related = false;
 
-                if relative.next().is_none() {
-                    break;
-                }
+                // while relative.peek() == namespace.peek() {
+                //     related = true;
 
-                namespace.next();
-            }
+                //     if relative.next().is_none() {
+                //         break;
+                //     }
+
+                //     namespace.next();
+                // }
+
+                // let mut tokens = TokenStream::new();
+
+                // if related {
+                //     for _ in 0..relative.count() {
+                //         tokens.push_str("super::");
+                //     }
+                // }
+
+                // for namespace in namespace {
+                //     tokens.push_str(namespace);
+                //     tokens.push_str("::");
+                // }
+
+                // tokens
+
+            // TODO: so instead we just gen it out in full
 
             let mut tokens = TokenStream::new();
 
-            if related {
-                for _ in 0..relative.count() {
-                    tokens.push_str("super::");
-                }
-            }
-
-            for namespace in namespace {
+            for namespace in namespace.split('.') {
                 tokens.push_str(namespace);
                 tokens.push_str("::");
             }
