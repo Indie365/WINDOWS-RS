@@ -379,7 +379,7 @@ fn syn_path(namespace: &str, generics: &[String], path: &syn::Path) -> winmd::Ty
             for arg in &args.args {
                 match arg {
                     syn::GenericArgument::Type(ty) => {
-                        type_generics.push(syn_type(namespace, generics, &ty))
+                        type_generics.push(syn_type(namespace, generics, ty))
                     }
                     rest => unimplemented!("{rest:?}"),
                 }
