@@ -84,7 +84,7 @@ impl<'a> Writer<'a> {
 
             if ty.is_generic() {
                 quote! { <#kind as ::windows_core::Type<#kind>>::Default }
-            } else if self.reader.type_is_nullable(ty) && !self.sys {
+            } else if type_is_nullable(self.reader, ty) && !self.sys {
                 quote! { ::core::option::Option<#kind> }
             } else {
                 kind
@@ -210,7 +210,7 @@ impl<'a> Writer<'a> {
                 TypeKind::Enum => self.type_def_name(*def, &[]),
                 TypeKind::Struct => {
                     let tokens = self.type_def_name(*def, &[]);
-                    if self.reader.type_def_is_blittable(*def) {
+                    if type_def_is_blittable(self.reader, *def) {
                         tokens
                     } else {
                         quote! { ::std::mem::MaybeUninit<#tokens> }
@@ -604,7 +604,7 @@ impl<'a> Writer<'a> {
         constraints: &TokenStream,
         features: &TokenStream,
     ) -> TokenStream {
-        if self.reader.type_def_is_agile(def) {
+        if type_def_is_agile(self.reader, def) {
             quote! {
                 #features
                 unsafe impl<#constraints> ::core::marker::Send for #ident {}
@@ -628,7 +628,7 @@ impl<'a> Writer<'a> {
         let mut async_generics = generics.to_vec();
 
         if kind == AsyncKind::None {
-            for interface in self.reader.type_def_interfaces(def, generics) {
+            for interface in type_def_interfaces(self.reader, def, generics) {
                 if let Type::TypeDef(interface_def, interface_generics) = &interface {
                     kind = type_def_async_kind(self.reader, *interface_def);
                     if kind != AsyncKind::None {
@@ -714,12 +714,12 @@ impl<'a> Writer<'a> {
         {
             let type_signature = if self.reader.type_def_kind(def) == TypeKind::Class {
                 let type_signature =
-                    Literal::byte_string(self.reader.type_def_signature(def, generics).as_bytes());
+                    Literal::byte_string(type_def_signature(self.reader, def, generics).as_bytes());
                 quote! { ::windows_core::imp::ConstBuffer::from_slice(#type_signature) }
             } else {
                 let signature = Literal::byte_string(
                     // TODO: workaround for riddle winmd generation (no attribute support)
-                    if let Some(guid) = self.reader.type_def_guid(def) {
+                    if let Some(guid) = type_def_guid(self.reader, def) {
                         format!("{{{:#?}}}", guid)
                     } else {
                         "TODO".to_string()
@@ -808,7 +808,7 @@ impl<'a> Writer<'a> {
         features: &TokenStream,
         has_unknown_base: bool,
     ) -> TokenStream {
-        if let Some(default) = self.reader.type_def_default_interface(def) {
+        if let Some(default) = type_def_default_interface(self.reader, def) {
             let default_name = self.type_name(&default);
             let vtbl = self.type_vtbl_name(&default);
             quote! {
@@ -830,7 +830,7 @@ impl<'a> Writer<'a> {
         } else {
             let vtbl = self.type_def_vtbl_name(def, generics);
             let guid = if generics.is_empty() {
-                match self.reader.type_def_guid(def) {
+                match type_def_guid(self.reader, def) {
                     Some(guid) => self.guid(&guid),
                     None => {
                         quote! {
@@ -885,7 +885,7 @@ impl<'a> Writer<'a> {
         method_names.add_vtable_types(self, def);
         let phantoms = self.generic_named_phantoms(generics);
 
-        match self.reader.type_def_vtables(def).last() {
+        match type_def_vtables(self.reader, def).last() {
             Some(Type::IUnknown) => {
                 methods.combine(&quote! { pub base__: ::windows_core::IUnknown_Vtbl, })
             }
@@ -970,7 +970,7 @@ impl<'a> Writer<'a> {
                     quote! {},
                 )
             }
-            _ if self.reader.type_is_struct(&signature.return_type) => {
+            _ if type_is_struct(self.reader, &signature.return_type) => {
                 let tokens = self.type_abi_name(&signature.return_type);
                 (quote! {}, quote! {}, quote! { result__: *mut #tokens, })
             }
@@ -1301,9 +1301,9 @@ impl<'a> Writer<'a> {
         {
             if param.ty.is_winrt_array() {
                 quote! { &[#default_type] }
-            } else if self.reader.type_is_primitive(&param.ty) {
+            } else if type_is_primitive(self.reader, &param.ty) {
                 quote! { #default_type }
-            } else if self.reader.type_is_nullable(&param.ty) {
+            } else if type_is_nullable(self.reader, &param.ty) {
                 let type_name = self.type_name(&param.ty);
                 quote! { ::core::option::Option<&#type_name> }
             } else {
@@ -1334,9 +1334,9 @@ impl<'a> Writer<'a> {
             .param_flags(param.def)
             .contains(ParamAttributes::In)
         {
-            if self.reader.type_is_primitive(&param.ty) {
+            if type_is_primitive(self.reader, &param.ty) {
                 quote! { #name: #kind, }
-            } else if self.reader.type_is_nullable(&param.ty) {
+            } else if type_is_nullable(self.reader, &param.ty) {
                 let kind = self.type_name(&param.ty);
                 quote! { #name: ::core::option::Option<&#kind>, }
             } else {

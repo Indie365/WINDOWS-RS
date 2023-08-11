@@ -216,7 +216,7 @@ fn namespace(writer: &Writer, tree: &Tree) -> String {
                         .combine(&enums::writer(writer, def)),
                     TypeKind::Struct => {
                         if writer.reader.type_def_fields(def).next().is_none() {
-                            if let Some(guid) = writer.reader.type_def_guid(def) {
+                            if let Some(guid) = type_def_guid(writer.reader, def) {
                                 let ident = to_ident(name);
                                 let value = writer.guid(&guid);
                                 let guid = writer.type_name(&Type::GUID);

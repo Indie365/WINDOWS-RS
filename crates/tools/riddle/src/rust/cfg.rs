@@ -66,7 +66,7 @@ pub fn type_def_cfg_impl<'a>(reader: &'a Reader, def: TypeDef, generics: &[Type]
 
     combine(reader, def, generics, &mut cfg);
 
-    for def in reader.type_def_vtables(def) {
+    for def in type_def_vtables(reader, def) {
         if let Type::TypeDef(def, generics) = def {
             combine(reader, def, &generics, &mut cfg);
         }
@@ -76,7 +76,7 @@ pub fn type_def_cfg_impl<'a>(reader: &'a Reader, def: TypeDef, generics: &[Type]
         .type_def_flags(def)
         .contains(TypeAttributes::WindowsRuntime)
     {
-        for interface in reader.type_def_interfaces(def, generics) {
+        for interface in type_def_interfaces(reader, def, generics) {
             if let Type::TypeDef(def, generics) = interface {
                 combine(reader, def, &generics, &mut cfg);
             }
@@ -106,7 +106,7 @@ pub fn type_def_cfg_combine<'a>(
     {
         match reader.type_def_kind(row) {
             TypeKind::Class => {
-                if let Some(default_interface) = reader.type_def_default_interface(row) {
+                if let Some(default_interface) = type_def_default_interface(reader, row) {
                     type_cfg_combine(reader, &default_interface, cfg);
                 }
             }
@@ -115,7 +115,7 @@ pub fn type_def_cfg_combine<'a>(
                     .type_def_flags(row)
                     .contains(TypeAttributes::WindowsRuntime)
                 {
-                    for def in reader.type_def_vtables(row) {
+                    for def in type_def_vtables(reader, row) {
                         if let Type::TypeDef(def, _) = def {
                             cfg.add_feature(reader.type_def_namespace(def));
                         }

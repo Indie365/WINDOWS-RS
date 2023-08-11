@@ -20,7 +20,7 @@ pub fn writer(writer: &Writer, def: TypeDef) -> TokenStream {
     let features = writer.cfg_features(&cfg);
     let mut requires = quote! {};
     let type_ident = quote! { #type_ident<#generic_names> };
-    let vtables = writer.reader.type_def_vtables(def);
+    let vtables = type_def_vtables(writer.reader, def);
     let has_unknown_base = matches!(vtables.first(), Some(Type::IUnknown));
 
     fn gen_required_trait(writer: &Writer, def: TypeDef, generics: &[Type]) -> TokenStream {

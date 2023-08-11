@@ -99,7 +99,7 @@ pub fn writer(
             let args = writer.win32_args(&signature.params, kind);
             let params = writer.win32_params(&signature.params, kind);
             let return_type = signature.params[signature.params.len() - 1].ty.deref();
-            let is_nullable = writer.reader.type_is_nullable(&return_type);
+            let is_nullable = type_is_nullable(writer.reader, &return_type);
             let return_type = writer.type_name(&return_type);
 
             if is_nullable {
@@ -227,15 +227,15 @@ fn gen_win32_invoke_arg(writer: &Writer, param: &SignatureParam) -> TokenStream 
         .reader
         .param_flags(param.def)
         .contains(ParamAttributes::In)
-        && writer.reader.type_is_nullable(&param.ty)
+        && type_is_nullable(writer.reader, &param.ty)
     {
         quote! { ::windows_core::from_raw_borrowed(&#name) }
-    } else if (!param.ty.is_pointer() && writer.reader.type_is_nullable(&param.ty))
+    } else if (!param.ty.is_pointer() && type_is_nullable(writer.reader, &param.ty))
         || (writer
             .reader
             .param_flags(param.def)
             .contains(ParamAttributes::In)
-            && !writer.reader.type_is_primitive(&param.ty))
+            && !type_is_primitive(writer.reader, &param.ty))
     {
         quote! { ::core::mem::transmute(&#name) }
     } else {

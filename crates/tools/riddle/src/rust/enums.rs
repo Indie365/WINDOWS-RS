@@ -179,7 +179,7 @@ pub fn writer(writer: &Writer, def: TypeDef) -> TokenStream {
             .contains(TypeAttributes::WindowsRuntime)
         {
             let signature =
-                Literal::byte_string(writer.reader.type_def_signature(def, &[]).as_bytes());
+                Literal::byte_string(type_def_signature(writer.reader, def, &[]).as_bytes());
 
             tokens.combine(&quote! {
                 #features

@@ -12,7 +12,7 @@ fn gen_sys_interface(writer: &Writer, def: TypeDef) -> TokenStream {
     let name = writer.reader.type_def_name(def);
     let ident = to_ident(name);
 
-    if writer.reader.type_def_is_exclusive(def) {
+    if type_def_is_exclusive(writer.reader, def) {
         quote! {}
     } else {
         quote! {
@@ -24,14 +24,14 @@ fn gen_sys_interface(writer: &Writer, def: TypeDef) -> TokenStream {
 fn gen_win_interface(writer: &Writer, def: TypeDef) -> TokenStream {
     let generics = &type_def_generics(writer.reader, def);
     let ident = writer.type_def_name(def, generics);
-    let is_exclusive = writer.reader.type_def_is_exclusive(def);
+    let is_exclusive = type_def_is_exclusive(writer.reader, def);
     let phantoms = writer.generic_phantoms(generics);
     let constraints = writer.generic_constraints(generics);
     let cfg = type_def_cfg(writer.reader, def, &[]);
     let doc = writer.cfg_doc(&cfg);
     let features = writer.cfg_features(&cfg);
     let interfaces = type_interfaces(writer.reader, &Type::TypeDef(def, generics.to_vec()));
-    let vtables = writer.reader.type_def_vtables(def);
+    let vtables = type_def_vtables(writer.reader, def);
     let has_unknown_base = matches!(vtables.first(), Some(Type::IUnknown));
 
     let mut tokens = if is_exclusive {

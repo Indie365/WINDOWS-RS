@@ -44,7 +44,7 @@ pub fn gen_win_handle(writer: &Writer, def: TypeDef) -> TokenStream {
             }
         }
     } else {
-        let invalid = writer.reader.type_def_invalid_values(def);
+        let invalid = type_def_invalid_values(writer.reader, def);
 
         if !invalid.is_empty() {
             let invalid = invalid.iter().map(|value| {
@@ -95,7 +95,7 @@ pub fn gen_win_handle(writer: &Writer, def: TypeDef) -> TokenStream {
         }
     };
 
-    if let Some(dependency) = writer.reader.type_def_usable_for(def) {
+    if let Some(dependency) = type_def_usable_for(writer.reader, def) {
         let type_name = writer.reader.type_def_type_name(dependency);
         let mut dependency = writer.namespace(type_name.namespace);
         dependency.push_str(type_name.name);

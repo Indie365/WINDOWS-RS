@@ -115,7 +115,7 @@ fn gen_win_function(writer: &Writer, namespace: &str, def: MethodDef) -> TokenSt
             let args = writer.win32_args(&signature.params, kind);
             let params = writer.win32_params(&signature.params, kind);
             let return_type = signature.params[signature.params.len() - 1].ty.deref();
-            let is_nullable = writer.reader.type_is_nullable(&return_type);
+            let is_nullable = type_is_nullable(writer.reader, &return_type);
             let return_type = writer.type_name(&return_type);
 
             if is_nullable {
@@ -197,7 +197,7 @@ fn gen_link(writer: &Writer, namespace: &str, signature: &Signature, cfg: &Cfg) 
     let name = writer.reader.method_def_name(signature.def);
     let ident = to_ident(name);
     let library = writer.reader.method_def_module_name(signature.def);
-    let abi = writer.reader.method_def_extern_abi(signature.def);
+    let abi = method_def_extern_abi(writer.reader, signature.def);
 
     let symbol = if let Some(impl_map) = writer.reader.method_def_impl_map(signature.def) {
         writer.reader.impl_map_import_name(impl_map)
@@ -239,7 +239,7 @@ fn gen_link(writer: &Writer, namespace: &str, signature: &Signature, cfg: &Cfg) 
                 pub fn #ident(#(#params,)* #vararg) #return_type;
             }
         }
-    } else if let Some(library) = writer.reader.method_def_static_lib(signature.def) {
+    } else if let Some(library) = method_def_static_lib(writer.reader, signature.def) {
         quote! {
             #[link(name = #library, kind = "static")]
             extern #abi {
@@ -289,7 +289,7 @@ fn handle_last_error(writer: &Writer, def: MethodDef, signature: &Signature) -> 
             .contains(PInvokeAttributes::SupportsLastError)
         {
             if let Type::TypeDef(return_type, _) = &signature.return_type {
-                if writer.reader.type_def_is_handle(*return_type) {
+                if type_def_is_handle(writer.reader, *return_type) {
                     if writer
                         .reader
                         .type_def_underlying_type(*return_type)
@@ -297,11 +297,7 @@ fn handle_last_error(writer: &Writer, def: MethodDef, signature: &Signature) -> 
                     {
                         return true;
                     }
-                    if !writer
-                        .reader
-                        .type_def_invalid_values(*return_type)
-                        .is_empty()
-                    {
+                    if !type_def_invalid_values(writer.reader, *return_type).is_empty() {
                         return true;
                     }
                 }

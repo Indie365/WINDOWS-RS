@@ -102,7 +102,7 @@ pub fn standalone_imp(writer: &Writer) -> String {
                     TypeKind::Struct => {
                         let name = writer.reader.type_def_name(def);
                         if writer.reader.type_def_fields(def).next().is_none() {
-                            if let Some(guid) = writer.reader.type_def_guid(def) {
+                            if let Some(guid) = type_def_guid(writer.reader, def) {
                                 let ident = to_ident(name);
                                 let value = writer.guid(&guid);
                                 let guid = writer.type_name(&Type::GUID);
@@ -236,7 +236,7 @@ fn type_collect_standalone(reader: &Reader, ty: &Type, set: &mut BTreeSet<Type>)
     }
     if reader.type_def_kind(def) == TypeKind::Struct
         && reader.type_def_fields(def).next().is_none()
-        && reader.type_def_guid(def).is_some()
+        && type_def_guid(reader, def).is_some()
     {
         set.insert(Type::GUID);
     }

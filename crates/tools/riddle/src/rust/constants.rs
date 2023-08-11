@@ -13,7 +13,7 @@ pub fn writer(writer: &Writer, def: Field) -> TokenStream {
         if ty == constant_type {
             if ty == Type::String {
                 let crate_name = writer.crate_name();
-                if writer.reader.field_is_ansi(def) {
+                if field_is_ansi(writer.reader, def) {
                     let value = writer.value(&writer.reader.constant_value(constant));
                     quote! {
                         #doc
@@ -39,7 +39,7 @@ pub fn writer(writer: &Writer, def: Field) -> TokenStream {
         } else {
             let kind = writer.type_default_name(&ty);
             let value = writer.value(&writer.reader.constant_value(constant));
-            let underlying_type = writer.reader.type_underlying_type(&ty);
+            let underlying_type = type_underlying_type(writer.reader, &ty);
 
             let value = if underlying_type == constant_type {
                 value
@@ -49,7 +49,7 @@ pub fn writer(writer: &Writer, def: Field) -> TokenStream {
                 quote! { #value as _ }
             };
 
-            if !writer.sys && writer.reader.type_has_replacement(&ty) {
+            if !writer.sys && type_has_replacement(writer.reader, &ty) {
                 quote! {
                     #doc
                     #features
@@ -63,7 +63,7 @@ pub fn writer(writer: &Writer, def: Field) -> TokenStream {
                 }
             }
         }
-    } else if let Some(guid) = writer.reader.field_guid(def) {
+    } else if let Some(guid) = field_guid(writer.reader, def) {
         let value = writer.guid(&guid);
         let guid = writer.type_name(&Type::GUID);
         quote! {
